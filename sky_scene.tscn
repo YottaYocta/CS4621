@@ -1,0 +1,44 @@
+[gd_scene load_steps=7 format=3 uid="uid://cibb1mcq53akv"]
+
+[ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_h5blq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nhd7l"]
+shader = ExtResource("1_had3h")
+shader_parameter/skyColor = Color(0, 0.42860648, 0.70129913, 1)
+shader_parameter/horizonColor = Color(0.735237, 0.8950755, 1, 1)
+
+[sub_resource type="Sky" id="Sky_nf61q"]
+sky_material = SubResource("ShaderMaterial_nhd7l")
+
+[sub_resource type="Environment" id="Environment_8vdus"]
+background_mode = 2
+sky = SubResource("Sky_nf61q")
+ambient_light_source = 3
+reflected_light_source = 2
+
+[node name="SkyScene" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -3, 4.1558294, 0)
+shadow_enabled = true
+
+[node name="PlayerController" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.9352245)
+
+[node name="Camera3D" type="Camera3D" parent="PlayerController"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
+
+[node name="Plane" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.7, 0, 0, 0, 0.9795806, 0.038662035, 0, -0.018039221, 2.0994575, 0, 0, 0)
+mesh = SubResource("PlaneMesh_h5blq")
+
+[node name="Capsule" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 4, 0)
+mesh = SubResource("CapsuleMesh_h5blq")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_8vdus")
