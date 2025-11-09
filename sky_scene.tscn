@@ -8,7 +8,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nhd7l"]
 shader = ExtResource("1_had3h")
-shader_parameter/skyColor = Color(0, 0.42860648, 0.70129913, 1)
+shader_parameter/skyColor = Color(0.25543854, 0.00027723314, 0.9846111, 1)
 shader_parameter/horizonColor = Color(0.735237, 0.8950755, 1, 1)
 
 [sub_resource type="Sky" id="Sky_nf61q"]
