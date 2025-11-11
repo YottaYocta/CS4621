@@ -44,7 +44,9 @@ ambient_light_source = 3
 reflected_light_source = 2
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_6fl2n"]
-noise_type = 3
+noise_type = 0
+frequency = 0.2785
+fractal_octaves = 8
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4nrna"]
 noise = SubResource("FastNoiseLite_6fl2n")
@@ -63,9 +65,6 @@ size = Vector3(5, 5, 5)
 [node name="PlayerController" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.9352245)
 
-[node name="Camera3D" type="Camera3D" parent="PlayerController"]
-transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 1, -9)
-
 [node name="Plane" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.7, 0, 0, 0, 0.9795806, 0.038662035, 0, -0.018039221, 2.0994575, 0, 0, 0)
 mesh = SubResource("PlaneMesh_h5blq")
@@ -80,9 +79,12 @@ environment = SubResource("Environment_8vdus")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 6, 0)
 
 [node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1527799, 0.7700209, -0.104141235)
 material_override = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
+
+[node name="Camera3D" type="Camera3D" parent="MeshInstance3D2"]
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, -0.1527799, 0.2299791, -5.960634)
