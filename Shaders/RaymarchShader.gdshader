@@ -1,0 +1,115 @@
+shader_type spatial;
+render_mode unshaded;
+
+//uniform float u_time;
+//uniform vec2 u_resolution;
+
+#define MAX_STEPS 100
+#define MARCH_SIZE 0.08
+
+uniform sampler2D noise_texture;
+
+// Signed distance function for a sphere
+float sd_sphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+// Takes in input of position in cloud
+// Don't know where the numbers came from but apparently this function is used in a lot of demos
+float noise(vec3 x) {
+	vec3 p = floor(x);
+	vec3 f = fract(x);
+	vec3 u = f * f * (3. - 2. * f);
+	
+	// sampling 2D slice from 3D position. z coord lets us move through "time" in the noise?
+	vec2 uv = (p.xy + vec2(37.0, 239.0) * p.z) + u.xy; 
+	vec2 tex = textureLod(noise_texture, (uv + 0.5) / 256.0, 0.0).yx;
+	// Smooth noise mix from texture lookup and rescale it to [-1,1]
+	return mix(tex.x, tex.y, u.z) * 2.0 - 1.0;
+}
+//Fracal Brownian Motion
+float fbm(vec3 p) {
+	// No idea abt these numbers
+	// Getting new vector of position with also time?
+	vec3 q = p + (TIME*0.5 *vec3(1.0,-0.2,-1.0));
+	
+	float f = 0.0;
+	float scale = 0.5;
+	float factor = 2.02;
+	// 6 iterations of adjusting noise?
+	for(int i =0; i < 6; i++) {
+		f += scale * noise(q);
+		q *= factor;
+		factor += 0.21;
+		scale *= 0.5;
+	}
+	
+	return f;
+}
+
+// Scene function
+float scene(vec3 p) {
+    float dist = sd_sphere(p, 1.0);
+	float f = fbm(p);
+	return -dist + f; //adding a noise term to the inside of distance
+}
+
+// Raymarch function
+vec4 raymarch(vec3 ro, vec3 rd) {
+	float depth = 0.0; //analogous to d0
+	vec3 p = ro + rd * depth;
+	vec4 res = vec4(0.0);
+    for (int i = 0; i < MAX_STEPS; i++) {
+        float density = scene(p); //analogous to dS
+        // Only draw if density is greater than 0 (inside cloud)
+      	if (density > 0.0) {
+			vec4 color = vec4(mix(vec3(1.0,1.0,1.0), vec3(0.0), density), density);
+			color.rgb *= color.a;
+			res += color * (1.0 - res.a);
+		}
+		depth += MARCH_SIZE;
+		p = ro + depth * rd;
+    }
+    return res;
+}
+
+varying vec3 vert;
+
+void vertex() {
+	// Called for every vertex the material is visible on.
+	vert = VERTEX; // vertex in local space
+	
+}
+
+void fragment() {
+	// Called for every pixel the material is visible on.
+	// Normalized screen-space UV
+    vec2 uv =fract(UV * vec2(3,2)) - 0.5;
+   
+
+    // Camera origin and direction
+    vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
+    vec3 rd = normalize(vert - ro);
+	//attempt 2--------
+	//vec3 ro = vec3(0.0,0.0,5.0);
+	//vec3 rd = normalize(vec3(uv, -1.0));
+	
+
+    // Perform raymarch
+    vec4 d = raymarch(ro, rd);
+    //vec3 p = ro + rd * d;
+	vec3 color = d.xyz;
+	//if (length(d) > 0.0) {
+		//color = d.xyz;
+	//} else {
+		//discard;
+	//}
+
+    ALBEDO = color;
+    //EMISSION = color;
+}
+
+//void light() {
+//	// Called for every pixel for every light affecting the material.
+//	// Uncomment to replace the default light processing function with this one.
+//}

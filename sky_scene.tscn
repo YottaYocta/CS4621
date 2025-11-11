@@ -1,14 +1,37 @@
-[gd_scene load_steps=7 format=3 uid="uid://cibb1mcq53akv"]
+[gd_scene load_steps=19 format=3 uid="uid://cibb1mcq53akv"]
 
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
+[ext_resource type="Shader" uid="uid://ce12r3ruqja6m" path="res://Shaders/CloudShader.gdshader" id="1_nhd7l"]
+[ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
+[ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_nf61q"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_8vdus"]
+noise = SubResource("FastNoiseLite_nf61q")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_nhd7l"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_nf61q"]
+noise = SubResource("FastNoiseLite_nhd7l")
+as_normal_map = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6fl2n"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_nhd7l")
+shader_parameter/noise = SubResource("NoiseTexture2D_8vdus")
+shader_parameter/height_scale = 0.5
+shader_parameter/normalmap = SubResource("NoiseTexture2D_nf61q")
+
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_h5blq"]
+material = SubResource("ShaderMaterial_6fl2n")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nhd7l"]
 shader = ExtResource("1_had3h")
-shader_parameter/skyColor = Color(0.25543854, 0.00027723314, 0.9846111, 1)
+shader_parameter/skyColor = Color(0.23936173, 0.13964027, 0.9363456, 1)
 shader_parameter/horizonColor = Color(0.735237, 0.8950755, 1, 1)
 
 [sub_resource type="Sky" id="Sky_nf61q"]
@@ -20,25 +43,46 @@ sky = SubResource("Sky_nf61q")
 ambient_light_source = 3
 reflected_light_source = 2
 
-[node name="SkyScene" type="Node3D"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_6fl2n"]
+noise_type = 3
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -3, 4.1558294, 0)
-shadow_enabled = true
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4nrna"]
+noise = SubResource("FastNoiseLite_6fl2n")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8vdus"]
+render_priority = 0
+shader = ExtResource("3_nf61q")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_4nrna")
+
+[sub_resource type="BoxMesh" id="BoxMesh_6fl2n"]
+material = SubResource("ShaderMaterial_8vdus")
+size = Vector3(5, 5, 5)
+
+[node name="SkyScene" type="Node3D"]
 
 [node name="PlayerController" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.9352245)
 
 [node name="Camera3D" type="Camera3D" parent="PlayerController"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 2)
+transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, 0, 1, -9)
 
 [node name="Plane" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.7, 0, 0, 0, 0.9795806, 0.038662035, 0, -0.018039221, 2.0994575, 0, 0, 0)
 mesh = SubResource("PlaneMesh_h5blq")
 
-[node name="Capsule" type="MeshInstance3D" parent="."]
+[node name="CloudMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 4, 0)
 mesh = SubResource("CapsuleMesh_h5blq")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_8vdus")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0)
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1527799, 0.7700209, -0.104141235)
+material_override = ExtResource("3_8vdus")
+mesh = SubResource("BoxMesh_6fl2n")
