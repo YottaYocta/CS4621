@@ -1,10 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://cibb1mcq53akv"]
+[gd_scene load_steps=17 format=3 uid="uid://cibb1mcq53akv"]
 
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
 [ext_resource type="Shader" uid="uid://ce12r3ruqja6m" path="res://Shaders/CloudShader.gdshader" id="1_nhd7l"]
 [ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
 [ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
-[ext_resource type="Texture2D" uid="uid://cyebt3srjasrs" path="res://Shaders/maxnoise.png" id="5_6fl2n"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
 
@@ -47,7 +46,6 @@ reflected_light_source = 2
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4nrna"]
 render_priority = 0
 shader = ExtResource("3_nf61q")
-shader_parameter/noise_texture = ExtResource("5_6fl2n")
 
 [sub_resource type="BoxMesh" id="BoxMesh_6fl2n"]
 material = SubResource("ShaderMaterial_4nrna")

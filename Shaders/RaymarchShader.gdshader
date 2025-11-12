@@ -49,8 +49,8 @@ float noise(vec3 x) {
 	vec2 uv = (p.xy + vec2(37.0, 239.0) * p.z) + f.xy;
 	vec2 tex = texture(noise_texture, (uv + 0.5 + 0.1*TIME) / 256.0, 0.0).yx;
 	// Smooth noise mix from texture lookup and rescale it to [-1,1]
-	return mix(tex.x, tex.y, f.z) * 2.0 - 1.0;
 
+	return mix(tex.x, tex.y, f.z) * 2.0 - 1.0;
 	  // Simplified lookup for single-channel noise
     //vec2 uv = (p.xy + vec2(37.0,239.0)*p.z) / 256.0;
     //float tex = textureLod(noise_texture, uv + f.xy / 256.0, 0.0).r;
@@ -91,6 +91,7 @@ float fbm(vec3 p, float time) {
 
 // Scene function
 float scene(vec3 p, float time) {
+<<<<<<< HEAD
 	//vec3 p1 = p;
 	//p1.xz *= rotate2D(-PI * 0.1);
 	//p1.yz *= rotate2D(PI * 0.3);
@@ -113,6 +114,9 @@ float scene(vec3 p, float time) {
 
 
     //float dist = sd_sphere(p, 1.0);
+=======
+    float dist = sd_sphere(p, 1.0);
+>>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 	float f = fbm(p, time);
 	return -dist + f; //adding a noise term to the inside of distance
 }
@@ -132,7 +136,11 @@ vec4 raymarch(vec3 ro, vec3 rd, float time) {
 			vec3 lin = vec3(0.60,0.60,0.75)*1.1 + 0.8*vec3(1.0,0.6,0.3)*diffuse;
 			vec4 color = vec4(mix(vec3(1.0), vec3(0.0), density), density);
 			color.rgb *= lin;
+<<<<<<< HEAD
 
+=======
+			
+>>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 			color.rgb *= color.a;
 			res += color * (1.0 - res.a);
 		}
@@ -149,7 +157,11 @@ void vertex() {
 	// Called for every vertex the material is visible on.
 	vert = VERTEX; // vertex in local space
 	time = TIME;
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 }
 
 void fragment() {
@@ -164,18 +176,32 @@ void fragment() {
 	//attempt 2--------
 	//vec3 ro = vec3(0.0,0.0,5.0);
 	//vec3 rd = normalize(vec3(uv, -1.0));
+<<<<<<< HEAD
 
 
 	//Sun and sky?
 	vec3 sunDirection = normalize(SUN_POSITION);
 	float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
 
+=======
+	
+	
+	//Sun and sky?
+	vec3 sunDirection = normalize(SUN_POSITION);
+	float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
+	
+>>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 	//base sky color
 	vec3 color = vec3(0.7,0.7,0.90);
 	color -= 0.8*vec3(0.90,0.75,0.90)*rd.y;
 	color += 0.5 * vec3(1.0,0.5,0.3) * pow(sun, 10.0);
+<<<<<<< HEAD
 
 
+=======
+	
+	
+>>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
     // Perform raymarch
     vec4 d = raymarch(ro, rd, TIME);
     //vec3 p = ro + rd * d;
