@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://donpc4mnvm7or"]
+
+[ext_resource type="Script" uid="uid://ckwwitjld52b1" path="res://player_controller.gd" id="1_lvefo"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_f0yg5"]
+
+[node name="PlayerController" type="Node3D"]
+script = ExtResource("1_lvefo")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_f0yg5")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.986481, 0.163877, 0, -0.163877, 0.986481, 0, 0.812261, 4.7549)

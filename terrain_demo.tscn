@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6h8qp1234abc"]
+
+[ext_resource type="Script" uid="uid://c23t8eo572121" path="res://ProceduralTerrain.gd" id="1_terrain"]
+[ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_pga2l"]
+
+[node name="TerrainDemo" type="Node3D"]
+
+[node name="ProceduralTerrain" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -14.0361, 0)
+script = ExtResource("1_terrain")
+chunk_size = 12
+voxel_size = 0.5
+roughness = 0.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0.443546, 0.434522, -0.783874, 0.230796, 0.789741, 0.568367, 0, 50, 0)
+shadow_enabled = true
+
+[node name="PlayerController" parent="." instance=ExtResource("2_pga2l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.4806, 0)
