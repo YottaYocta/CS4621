@@ -1,5 +1,4 @@
 shader_type spatial;
-render_mode unshaded;
 
 #define MAX_STEPS 100
 #define MARCH_SIZE 0.08
@@ -10,6 +9,14 @@ const vec3 SUN_POSITION = vec3(5.0,6.0,0.0);
 
 uniform sampler2D noise_texture2 : hint_screen_texture, repeat_disable, filter_nearest;
 uniform sampler2D noise_texture : repeat_enable;
+
+
+uniform vec3 light_pos = vec3(5.0,6.0,0.0);
+uniform vec4 light_color : source_color;
+//i dont think we need these two
+//uniform float light_radius;
+//uniform float light_attenuation;
+
 
 // Signed distance function for a sphere
 float sd_sphere(vec3 p, float radius) {
@@ -91,7 +98,7 @@ float fbm(vec3 p, float time) {
 
 // Scene function
 float scene(vec3 p, float time) {
-<<<<<<< HEAD
+
 	//vec3 p1 = p;
 	//p1.xz *= rotate2D(-PI * 0.1);
 	//p1.yz *= rotate2D(PI * 0.3);
@@ -111,12 +118,6 @@ float scene(vec3 p, float time) {
 	//NO CHANGING SHAPES
 	float dist = sd_sphere(p, RADIUS);
 
-
-
-    //float dist = sd_sphere(p, 1.0);
-=======
-    float dist = sd_sphere(p, 1.0);
->>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 	float f = fbm(p, time);
 	return -dist + f; //adding a noise term to the inside of distance
 }
@@ -125,7 +126,7 @@ float scene(vec3 p, float time) {
 vec4 raymarch(vec3 ro, vec3 rd, float time) {
 	float depth = 0.0; //analogous to d0
 	vec3 p = ro + rd * depth;
-	vec3 sunDirection = normalize(SUN_POSITION);
+	vec3 sunDirection = normalize(light_pos);
 	vec4 res = vec4(0.0);
     for (int i = 0; i < MAX_STEPS; i++) {
         float density = scene(p, time); //analogous to dS
@@ -136,13 +137,8 @@ vec4 raymarch(vec3 ro, vec3 rd, float time) {
 			vec3 lin = vec3(0.60,0.60,0.75)*1.1 + 0.8*vec3(1.0,0.6,0.3)*diffuse;
 			vec4 color = vec4(mix(vec3(1.0), vec3(0.0), density), density);
 			color.rgb *= lin;
-<<<<<<< HEAD
-
-=======
-			
->>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 			color.rgb *= color.a;
-			res += color * (1.0 - res.a);
+      		res += color * (1.0 - res.a);
 		}
 		depth += MARCH_SIZE;
 		p = ro + depth * rd;
@@ -157,11 +153,6 @@ void vertex() {
 	// Called for every vertex the material is visible on.
 	vert = VERTEX; // vertex in local space
 	time = TIME;
-<<<<<<< HEAD
-
-=======
-	
->>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 }
 
 void fragment() {
@@ -176,32 +167,19 @@ void fragment() {
 	//attempt 2--------
 	//vec3 ro = vec3(0.0,0.0,5.0);
 	//vec3 rd = normalize(vec3(uv, -1.0));
-<<<<<<< HEAD
 
 
 	//Sun and sky?
-	vec3 sunDirection = normalize(SUN_POSITION);
+	vec3 sunDirection = normalize(light_pos);
 	float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
 
-=======
-	
-	
-	//Sun and sky?
-	vec3 sunDirection = normalize(SUN_POSITION);
-	float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
-	
->>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
 	//base sky color
 	vec3 color = vec3(0.7,0.7,0.90);
+	//Add gradient vertically
 	color -= 0.8*vec3(0.90,0.75,0.90)*rd.y;
+	// Add sun color to sky
 	color += 0.5 * vec3(1.0,0.5,0.3) * pow(sun, 10.0);
-<<<<<<< HEAD
 
-
-=======
-	
-	
->>>>>>> f0891626618ffe4dee267332a756bdda2f77de74
     // Perform raymarch
     vec4 d = raymarch(ro, rd, TIME);
     //vec3 p = ro + rd * d;
@@ -211,6 +189,8 @@ void fragment() {
 	//} else {
 		//discard;
 	//}
+	
+	//Tested that fbm works, light_color works IN THE MATERIAL. not 3D.
 
     ALBEDO = color;
     //EMISSION = color;

@@ -1,9 +1,11 @@
-[gd_scene load_steps=17 format=3 uid="uid://cibb1mcq53akv"]
+[gd_scene load_steps=19 format=3 uid="uid://cibb1mcq53akv"]
 
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
 [ext_resource type="Shader" uid="uid://ce12r3ruqja6m" path="res://Shaders/CloudShader.gdshader" id="1_nhd7l"]
 [ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
 [ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
+[ext_resource type="Texture2D" uid="uid://cyebt3srjasrs" path="res://Shaders/maxnoise.png" id="5_6fl2n"]
+[ext_resource type="Script" uid="uid://boc3685jfbuvs" path="res://lighting.gd" id="6_4nrna"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
 
@@ -46,6 +48,9 @@ reflected_light_source = 2
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4nrna"]
 render_priority = 0
 shader = ExtResource("3_nf61q")
+shader_parameter/noise_texture = ExtResource("5_6fl2n")
+shader_parameter/light_pos = Vector3(5, 6, 1)
+shader_parameter/light_color = Color(0.7915124, 0.541183, 0.9553011, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_6fl2n"]
 material = SubResource("ShaderMaterial_4nrna")
@@ -71,12 +76,14 @@ environment = SubResource("Environment_8vdus")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.827256, 0, 0)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.026733, 5.188263, -0.8841901)
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+[node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1527799, 0.7700209, -0.104141235)
 material_override = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
+script = ExtResource("6_4nrna")
+light_node = NodePath("../OmniLight3D")
 
-[node name="Camera3D" type="Camera3D" parent="MeshInstance3D2"]
+[node name="Camera3D" type="Camera3D" parent="Cloud"]
 transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, -0.1527799, 0.2299791, -5.960634)
