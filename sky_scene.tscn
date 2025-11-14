@@ -17,8 +17,8 @@ noise = SubResource("FastNoiseLite_nf61q")
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_nhd7l"]
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_nf61q"]
-noise = SubResource("FastNoiseLite_nhd7l")
 as_normal_map = true
+noise = SubResource("FastNoiseLite_nhd7l")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_6fl2n"]
 resource_local_to_scene = true
@@ -30,11 +30,13 @@ shader_parameter/normalmap = SubResource("NoiseTexture2D_nf61q")
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_h5blq"]
 material = SubResource("ShaderMaterial_6fl2n")
+radius = 2.5
+height = 5.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nhd7l"]
 shader = ExtResource("1_had3h")
-shader_parameter/skyColor = Color(0.23936173, 0.13964027, 0.9363456, 1)
-shader_parameter/horizonColor = Color(0.735237, 0.8950755, 1, 1)
+shader_parameter/skyColor = Color(0.239362, 0.13964, 0.936346, 1)
+shader_parameter/horizonColor = Color(0.735237, 0.895076, 1, 1)
 
 [sub_resource type="Sky" id="Sky_nf61q"]
 sky_material = SubResource("ShaderMaterial_nhd7l")
@@ -59,31 +61,31 @@ size = Vector3(5, 5, 5)
 [node name="SkyScene" type="Node3D"]
 
 [node name="PlayerController" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.9352245)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2.93522)
 
 [node name="Plane" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.7, 0, 0, 0, 0.9795806, 0.038662035, 0, -0.018039221, 2.0994575, 0, 0, 0)
+transform = Transform3D(1.7, 0, 0, 0, 0.979581, 0.038662, 0, -0.0180392, 2.09946, 0, 0, 0)
 mesh = SubResource("PlaneMesh_h5blq")
 
 [node name="CloudMesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(-4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0, 0, 1, 0, 4, 0)
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 4, 0)
 mesh = SubResource("CapsuleMesh_h5blq")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_8vdus")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.827256, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.82726, 0, 0)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.026733, 5.188263, -0.8841901)
 
 [node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1527799, 0.7700209, -0.104141235)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15278, 0.770021, -0.104141)
 material_override = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
 script = ExtResource("6_4nrna")
 light_node = NodePath("../OmniLight3D")
 
-[node name="Camera3D" type="Camera3D" parent="Cloud"]
-transform = Transform3D(1, 0, 0, 0, -1, 8.742278e-08, 0, -8.742278e-08, -1, -0.1527799, 0.2299791, -5.960634)
+[node name="Camera3D" type="Camera3D" parent="MeshInstance3D2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.29108, 9.34613)
