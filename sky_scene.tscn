@@ -5,7 +5,7 @@
 [ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
 [ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
 [ext_resource type="Texture2D" uid="uid://cyebt3srjasrs" path="res://Shaders/maxnoise.png" id="5_6fl2n"]
-[ext_resource type="Script" uid="uid://boc3685jfbuvs" path="res://lighting.gd" id="6_4nrna"]
+[ext_resource type="Script" path="res://lighting.gd" id="6_4nrna"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
 
@@ -52,7 +52,7 @@ render_priority = 0
 shader = ExtResource("3_nf61q")
 shader_parameter/noise_texture = ExtResource("5_6fl2n")
 shader_parameter/light_pos = Vector3(5, 6, 1)
-shader_parameter/light_color = Color(0.7915124, 0.541183, 0.9553011, 1)
+shader_parameter/light_color = Color(0.791512, 0.541183, 0.955301, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_6fl2n"]
 material = SubResource("ShaderMaterial_4nrna")
@@ -78,7 +78,7 @@ environment = SubResource("Environment_8vdus")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.82726, 0, 0)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.026733, 5.188263, -0.8841901)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.02673, 5.18826, -0.88419)
 
 [node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15278, 0.770021, -0.104141)
@@ -87,5 +87,5 @@ mesh = SubResource("BoxMesh_6fl2n")
 script = ExtResource("6_4nrna")
 light_node = NodePath("../OmniLight3D")
 
-[node name="Camera3D" type="Camera3D" parent="MeshInstance3D2"]
+[node name="MeshInstance3D2#Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.29108, 9.34613)

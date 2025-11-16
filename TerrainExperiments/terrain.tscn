@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3 uid="uid://bbbbg67m7n8un"]
+
+[ext_resource type="Script" uid="uid://jwyxf86gr6x8" path="res://TerrainExperiments/terrain.gd" id="1_oh0tx"]
+[ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_t1bv2"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_t1bv2"]
+sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
+sky_horizon_color = Color(0.634458, 0.769141, 0.863272, 1)
+sky_curve = 0.0326457
+ground_bottom_color = Color(0.498039, 0.611765, 0.788235, 1)
+ground_horizon_color = Color(0.635294, 0.768627, 0.862745, 1)
+sun_angle_max = 58.89
+sun_curve = 0.0349887
+energy_multiplier = 1.2
+
+[sub_resource type="Sky" id="Sky_rac37"]
+sky_material = SubResource("ProceduralSkyMaterial_t1bv2")
+
+[sub_resource type="Environment" id="Environment_8i444"]
+background_mode = 2
+background_energy_multiplier = 0.92
+sky = SubResource("Sky_rac37")
+sky_custom_fov = 104.2
+ambient_light_source = 3
+
+[node name="Terrain" type="Node3D"]
+script = ExtResource("1_oh0tx")
+
+[node name="PlayerController" parent="." instance=ExtResource("2_t1bv2")]
+transform = Transform3D(-0.374768, 0, -0.927118, 0, 1, 0, 0.927118, 0, -0.374768, -2.89996, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_8i444")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
