@@ -256,3 +256,53 @@ func _cpu_cube_march():
 				var tree := get_tree()
 				if tree != null && gen_speed > 0:
 					await get_tree().create_timer(gen_speed).timeout
+
+	# Create collision mesh after rendering is complete
+	_create_collision_mesh(newMeshInstance)
+
+func _create_collision_mesh(mesh_instance: MeshInstance3D):
+	if mesh_instance.mesh == null:
+		return
+
+	# Create StaticBody3D for collision
+	var static_body := StaticBody3D.new()
+	static_body.name = "CollisionBody"
+	add_child(static_body)
+
+	# Create CollisionShape3D
+	var collision_shape := CollisionShape3D.new()
+	collision_shape.name = "CollisionShape"
+	static_body.add_child(collision_shape)
+
+	# Create ConcavePolygonShape3D from the mesh
+	var shape := ConcavePolygonShape3D.new()
+	var mesh_arrays = mesh_instance.mesh.surface_get_arrays(0)
+	var vertices = mesh_arrays[Mesh.ARRAY_VERTEX]
+	var indices = mesh_arrays[Mesh.ARRAY_INDEX]
+
+	# Build faces array for ConcavePolygonShape3D
+	var faces := PackedVector3Array()
+	for i in range(0, indices.size(), 3):
+		if i + 2 < indices.size():
+			faces.append(vertices[indices[i]])
+			faces.append(vertices[indices[i + 1]])
+			faces.append(vertices[indices[i + 2]])
+
+	shape.set_faces(faces)
+	collision_shape.shape = shape
+
+	# Connect to body_entered signal to detect collisions
+	if static_body.has_signal("body_entered"):
+		static_body.body_entered.connect(_on_body_entered)
+
+func _on_body_entered(body: Node3D):
+	# Log collision when something enters the chunk collision
+	print("Collision detected in chunk at position ", position)
+	print("  Body: ", body.name)
+	print("  Body position: ", body.global_position)
+
+	# If the body is a CharacterBody3D or RigidBody3D, we can get more info
+	if body is CharacterBody3D:
+		print("  CharacterBody velocity: ", body.velocity)
+	elif body is RigidBody3D:
+		print("  RigidBody linear velocity: ", body.linear_velocity)
