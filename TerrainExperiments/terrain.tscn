@@ -13,22 +13,20 @@ sun_angle_max = 58.89
 sun_curve = 0.0349887
 energy_multiplier = 1.2
 
-[sub_resource type="Sky" id="Sky_rac37"]
+[sub_resource type="Sky" id="Sky_t1bv2"]
 sky_material = SubResource("ProceduralSkyMaterial_t1bv2")
 
 [sub_resource type="Environment" id="Environment_8i444"]
 background_mode = 2
 background_energy_multiplier = 0.92
-sky = SubResource("Sky_rac37")
+sky = SubResource("Sky_t1bv2")
 sky_custom_fov = 104.2
 ambient_light_source = 3
 
 [node name="Terrain" type="Node3D"]
-transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
 script = ExtResource("1_oh0tx")
-resolution = 7
-sphere_radius = 0.01
-gen_speed = 0.01
+sphere_radius = 0.05
+gen_speed = 0.0
 
 [node name="PlayerController" parent="." instance=ExtResource("2_t1bv2")]
 transform = Transform3D(-0.374768, 0, -0.927118, 0, 1, 0, 0.927118, 0, -0.374768, -2.89996, 0, 0)
