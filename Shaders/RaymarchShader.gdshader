@@ -184,11 +184,11 @@ void fragment() {
     vec4 d = raymarch(ro, rd, TIME);
     //vec3 p = ro + rd * d;
 	color = color * (1.0 - d.a) + d.rgb;
-	//if (length(d) > 0.0) {
-		//color = d.xyz;
-	//} else {
-		//discard;
-	//}
+	if (length(d) > 0.0) {
+		color = d.xyz;
+	} else {
+		discard;
+	}
 	
 	//Tested that fbm works, light_color works IN THE MATERIAL. not 3D.
 

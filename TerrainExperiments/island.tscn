@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://d2u5713gxcfce"]
+[gd_scene load_steps=7 format=3 uid="uid://d2u5713gxcfce"]
 
 [ext_resource type="Script" uid="uid://tlfe61td3n4c" path="res://TerrainExperiments/island.gd" id="1_island"]
 [ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_6o045"]
+[ext_resource type="PackedScene" uid="uid://cibb1mcq53akv" path="res://sky_scene.tscn" id="3_86csr"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_86csr"]
 sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
@@ -25,11 +26,10 @@ ambient_light_source = 3
 
 [node name="Island" type="Node3D"]
 script = ExtResource("1_island")
-resolution = 16
-chunk_size = 4
+chunk_size = 2
 automata_iterations = 6
 alive_threshold = 9
-chunk_gen_speed = 0.01
+chunk_gen_speed = 0.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_kwo76")
@@ -38,3 +38,9 @@ environment = SubResource("Environment_kwo76")
 transform = Transform3D(-0.374768, 0, -0.927118, 0, 1, 0, 0.927118, 0, -0.374768, -2.89996, 0, 0)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+
+[node name="SkyScene" parent="." instance=ExtResource("3_86csr")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 11.1855, 9.51437, -10.3242)
+
+[node name="SkyScene2" parent="." instance=ExtResource("3_86csr")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, -8.82511, 2.81965, 27.6092)

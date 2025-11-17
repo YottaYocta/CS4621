@@ -153,3 +153,92 @@ func _regenerate():
 
 func _ready():
 	_regenerate()
+
+	# Connect to player voxel editing signals
+	_connect_player_signals()
+
+func _connect_player_signals():
+	# Find the player controller in the scene
+	var player = get_node_or_null("PlayerController")
+	if player and player.has_signal("voxel_add_requested"):
+		player.voxel_add_requested.connect(_on_voxel_add_requested)
+		player.voxel_delete_requested.connect(_on_voxel_delete_requested)
+		print("Connected to player voxel editing signals")
+
+func _on_voxel_add_requested(global_pos: Vector3):
+	print("Island received add request at: ", global_pos)
+	_modify_voxels_at_position(global_pos, 1)
+
+func _on_voxel_delete_requested(global_pos: Vector3):
+	print("Island received delete request at: ", global_pos)
+	_modify_voxels_at_position(global_pos, -1)
+
+func _modify_voxels_at_position(global_pos: Vector3, value: int):
+	# Convert global position to voxel coordinates
+	var voxel_x = int(round(global_pos.x))
+	var voxel_y = int(round(global_pos.y))
+	var voxel_z = int(round(global_pos.z))
+
+	print("Modifying voxel at: [", voxel_x, ", ", voxel_y, ", ", voxel_z, "] to value: ", value)
+
+	# Track which chunks need remeshing
+	var affected_chunks = {}
+
+	# Modify the voxel and neighboring voxels for a brush-like effect
+	var brush_radius = 1
+	for dz in range(-brush_radius, brush_radius + 1):
+		for dy in range(-brush_radius, brush_radius + 1):
+			for dx in range(-brush_radius, brush_radius + 1):
+				var x = voxel_x + dx
+				var y = voxel_y + dy
+				var z = voxel_z + dz
+
+				# Check if within bounds
+				if x >= 0 and x < resolution and y >= 0 and y < resolution and z >= 0 and z < resolution:
+					# Don't modify edge voxels
+					if x > 0 and x < resolution - 1 and y > 0 and y < resolution - 1 and z > 0 and z < resolution - 1:
+						mat[z][y][x] = value
+
+						# Calculate which chunk this voxel belongs to
+						var chunk_x = int(x / chunk_size)
+						var chunk_y = int(y / chunk_size)
+						var chunk_z = int(z / chunk_size)
+						var chunk_key = Vector3i(chunk_x, chunk_y, chunk_z)
+						affected_chunks[chunk_key] = true
+
+	# Expand to include neighboring chunks of affected chunks
+	var chunks_to_remesh = {}
+	for chunk_key in affected_chunks.keys():
+		# Add the directly affected chunk
+		chunks_to_remesh[chunk_key] = true
+
+		# Add all 26 neighboring chunks
+		for dz in range(-1, 2):
+			for dy in range(-1, 2):
+				for dx in range(-1, 2):
+					var neighbor_chunk = Vector3i(chunk_key.x + dx, chunk_key.y + dy, chunk_key.z + dz)
+					# Check if neighboring chunk is within valid range
+					var num_chunks = int(ceil(float(resolution) / float(chunk_size)))
+					if neighbor_chunk.x >= 0 and neighbor_chunk.x < num_chunks and \
+					   neighbor_chunk.y >= 0 and neighbor_chunk.y < num_chunks and \
+					   neighbor_chunk.z >= 0 and neighbor_chunk.z < num_chunks:
+						chunks_to_remesh[neighbor_chunk] = true
+
+	# Remesh all affected chunks and their neighbors
+	print("Remeshing ", chunks_to_remesh.size(), " chunks (", affected_chunks.size(), " directly affected + neighbors)")
+	for chunk_key in chunks_to_remesh.keys():
+		_remesh_chunk(chunk_key.x, chunk_key.y, chunk_key.z)
+
+func _remesh_chunk(chunk_x: int, chunk_y: int, chunk_z: int):
+	# Find and remesh the specific chunk
+	for child in get_children():
+		if child is Chunk:
+			var expected_pos = Vector3(chunk_x * chunk_size, chunk_y * chunk_size, chunk_z * chunk_size)
+			if child.position == expected_pos:
+				print("Remeshing chunk at: ", expected_pos)
+				# Clear the chunk's children and re-render
+				for c in child.get_children():
+					c.queue_free()
+				# Re-render the chunk
+				child.render(self, chunk_x * chunk_size, chunk_y * chunk_size, chunk_z * chunk_size, chunk_size)
+				break

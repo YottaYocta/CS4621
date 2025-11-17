@@ -2,6 +2,14 @@ extends Node3D
 
 @export var move_speed: float = 10.0
 @export var rotation_speed: float = 2.0
+@export var raycast_distance: float = 100.0
+
+# Signals for voxel editing
+signal voxel_add_requested(global_position: Vector3)
+signal voxel_delete_requested(global_position: Vector3)
+
+var raycast_collision_point: Vector3
+var has_raycast_hit: bool = false
 
 func _process(delta: float) -> void:
 	var movement = Vector3.ZERO
@@ -40,3 +48,37 @@ func _process(delta: float) -> void:
 
 	# Apply rotation
 	rotate_y(rotation_input * rotation_speed * delta)
+
+	# Perform raycast from player forward direction
+	_perform_raycast()
+
+	# Handle voxel editing input
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		if has_raycast_hit:
+			voxel_add_requested.emit(raycast_collision_point)
+			print("Add voxel at: ", raycast_collision_point)
+
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		if has_raycast_hit:
+			voxel_delete_requested.emit(raycast_collision_point)
+			print("Delete voxel at: ", raycast_collision_point)
+
+func _perform_raycast():
+	var space_state = get_world_3d().direct_space_state
+	var origin = global_position
+	var end = origin + (-global_transform.basis.z * raycast_distance)
+
+	var query = PhysicsRayQueryParameters3D.create(origin, end)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+
+	var result = space_state.intersect_ray(query)
+
+	if result:
+		has_raycast_hit = true
+		raycast_collision_point = result.position
+		# Log collision point
+		if result.position != raycast_collision_point or not has_raycast_hit:
+			print("Raycast hit at: ", result.position)
+	else:
+		has_raycast_hit = false
