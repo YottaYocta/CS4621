@@ -121,10 +121,8 @@ func _process_single_cube(mesh_instance: MeshInstance3D, i: int, j: int, k: int)
 	if edge_flags & 2048:
 		edge_vertices[11] = _interpolate_vertex(i, j + 1, k, i, j + 1, k + 1, cube_values[3], cube_values[7], voxel_size)
 
-	# Build triangles from the lookup table
 	var tri_list = CubeMarcher.TRI_TABLE[cube_index]
 
-	# Get current mesh or create new one
 	var array_mesh: ArrayMesh
 	if mesh_instance.mesh == null:
 		array_mesh = ArrayMesh.new()
@@ -132,35 +130,44 @@ func _process_single_cube(mesh_instance: MeshInstance3D, i: int, j: int, k: int)
 	else:
 		array_mesh = mesh_instance.mesh as ArrayMesh
 
-	# Get existing vertices and triangles if any
 	var vertices = []
 	var triangles = []
+	var normals = []
 
 	if array_mesh.get_surface_count() > 0:
 		var existing_arrays = array_mesh.surface_get_arrays(0)
 		vertices = Array(existing_arrays[Mesh.ARRAY_VERTEX])
 		triangles = Array(existing_arrays[Mesh.ARRAY_INDEX])
+		if existing_arrays[Mesh.ARRAY_NORMAL] != null:
+			normals = Array(existing_arrays[Mesh.ARRAY_NORMAL])
 		array_mesh.clear_surfaces()
 
-	# Add new triangles
 	for idx in range(0, tri_list.size(), 3):
 		if idx + 2 < tri_list.size():
 			var v1 = edge_vertices[tri_list[idx]]
 			var v2 = edge_vertices[tri_list[idx + 1]]
 			var v3 = edge_vertices[tri_list[idx + 2]]
 
+			# Calculate face normal
+			var edge1 = v2 - v1
+			var edge2 = v3 - v1
+			var normal = edge1.cross(edge2).normalized()
+
 			var base_idx = vertices.size()
 			vertices.append(v1)
 			vertices.append(v2)
 			vertices.append(v3)
+			normals.append(-normal)
+			normals.append(-normal)
+			normals.append(-normal)
 			triangles.append(base_idx)
 			triangles.append(base_idx + 1)
 			triangles.append(base_idx + 2)
 
-	# Recreate mesh with updated data
 	var arrays = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array(vertices)
+	arrays[Mesh.ARRAY_NORMAL] = PackedVector3Array(normals)
 	arrays[Mesh.ARRAY_INDEX] = PackedInt32Array(triangles)
 	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 
@@ -185,7 +192,6 @@ func _cpu_cube_march():
 
 	var newMeshInstance := MeshInstance3D.new()
 
-	# Add a material so it's visible
 	var material := StandardMaterial3D.new()
 	material.cull_mode=BaseMaterial3D.CULL_DISABLED
 	material.albedo_color = Color(0.5, 0.7, 0.9)
