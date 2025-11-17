@@ -11,4 +11,4 @@ script = ExtResource("1_lvefo")
 mesh = SubResource("CapsuleMesh_f0yg5")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.986481, 0.163877, 0, -0.163877, 0.986481, 0, 0.812261, 4.7549)
+transform = Transform3D(1, 0, 0, 0, 0.986481, 0.163877, 0, -0.163877, 0.986481, 0, 2.61374, 4.7549)
