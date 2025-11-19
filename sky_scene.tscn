@@ -56,7 +56,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.82726, 0, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.02673, 5.18826, -0.88419)
 
 [node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15278, 0.770021, -0.104141)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152444, 0.764138, -0.104662)
 material_override = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
 surface_material_override/0 = ExtResource("3_8vdus")

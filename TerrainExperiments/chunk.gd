@@ -1,104 +1,109 @@
 @tool
 extends Node3D
+class_name Chunk
 
-@export var resolution: int = 8:
-	set(value):
-		resolution = value
-		_generate()
-		_clear_children()
-		_spawn_visuals()
+@export var gen_speed: float = 0.05
+@export var debug: bool = false
+@export var sphere_radius: float = 0.1
 
-@export var debug: bool = true:
-	set(value):
-		debug = value
-		if debug:
-			_clear_children()
-			_spawn_visuals()
-		else:
-			_clear_children()
-
-@export var sphere_radius := 0.1
-@export var gen_speed := 0.05
-
-
+var island_data: IslandData = null
+var chunk_start_x: int = 0
+var chunk_start_y: int = 0
+var chunk_start_z: int = 0
+var chunk_size: int = 8
 var mat := []
 
-func _clear_children():
-	for c in get_children():
-		if c is MeshInstance3D:
-			c.queue_free()
+func render(island: IslandData, x: int, y: int, z: int, size: int):
+	island_data = island
+	chunk_start_x = x
+	chunk_start_y = y
+	chunk_start_z = z
+	chunk_size = size
 
-func _generate():
-	mat.clear()
-	for k in range(resolution):
-		var slice := []
-		for j in range(resolution):
-			var row := []
-			for i in range(resolution):
-				row.append(randi_range(-1, 1))
-			slice.append(row)
-		mat.append(slice) 
+	# Extract chunk's portion of the voxel data
+	_extract_chunk_data()
 
-
-func _spawn_visuals():
+	# Render debug spheres if enabled
 	if debug:
-		var sphere_mesh := SphereMesh.new()
-		sphere_mesh.radius=sphere_radius
-		sphere_mesh.height=sphere_radius * 2
+		_spawn_debug_spheres()
 
-
-		for k in range(resolution):
-			for j in range(resolution):
-				for i in range(resolution):
-					var value = mat[k][j][i]
-					var inst := MeshInstance3D.new()
-					inst.mesh = sphere_mesh
-
-					var grayscale:= float(value + 1)/2.0
-					var material := StandardMaterial3D.new()
-					material.albedo_color = Color(grayscale, grayscale, grayscale)
-					inst.material_override = material
-
-					inst.position = Vector3(i,j,k)
-					add_child(inst)
+	# Start marching cubes rendering
 	_cpu_cube_march()
 
+func _extract_chunk_data():
+	mat.clear()
+
+	# Extract voxel data for this chunk from the island
+	# +1 to include boundary voxels needed for marching cubes
+	for k in range(chunk_size + 1):
+		var slice := []
+		for j in range(chunk_size + 1):
+			var row := []
+			for i in range(chunk_size + 1):
+				var world_x = chunk_start_x + i
+				var world_y = chunk_start_y + j
+				var world_z = chunk_start_z + k
+				# get_voxel returns -1 for out-of-bounds, which is fine
+				row.append(island_data.get_voxel(world_x, world_y, world_z))
+			slice.append(row)
+		mat.append(slice)
+
+func _spawn_debug_spheres():
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = sphere_radius
+	sphere_mesh.height = sphere_radius * 2
+
+	for k in range(chunk_size + 1):
+		for j in range(chunk_size + 1):
+			for i in range(chunk_size + 1):
+				var value = mat[k][j][i]
+				var inst := MeshInstance3D.new()
+				inst.mesh = sphere_mesh
+
+				var grayscale := float(value + 1) / 2.0
+				var material := StandardMaterial3D.new()
+				material.albedo_color = Color(grayscale, grayscale, grayscale)
+				inst.material_override = material
+
+				# Position relative to chunk (local coordinates)
+				inst.position = Vector3(i, j, k)
+				add_child(inst)
 
 func _calculate_normal_at_position(x: float, y: float, z: float) -> Vector3:
-	# Calculate normal using gradient of the density field
-	# Sample surrounding voxels with bounds checking
-	var dx = _sample_field(x + 0.1, y, z) - _sample_field(x - 0.1, y, z)
-	var dy = _sample_field(x, y + 0.1, z) - _sample_field(x, y - 0.1, z)
-	var dz = _sample_field(x, y, z + 0.1) - _sample_field(x, y, z - 0.1)
+	# Calculate normal using gradient of the density field from island data
+	# Convert local chunk coordinates to world coordinates
+	var world_x = x + chunk_start_x
+	var world_y = y + chunk_start_y
+	var world_z = z + chunk_start_z
+
+	var dx = _sample_field_world(world_x + 0.1, world_y, world_z) - _sample_field_world(world_x - 0.1, world_y, world_z)
+	var dy = _sample_field_world(world_x, world_y + 0.1, world_z) - _sample_field_world(world_x, world_y - 0.1, world_z)
+	var dz = _sample_field_world(world_x, world_y, world_z + 0.1) - _sample_field_world(world_x, world_y, world_z - 0.1)
 
 	var gradient = Vector3(dx, dy, dz)
 	if gradient.length() > 0.0001:
-		return -gradient.normalized()  # Negative because we want outward facing normals
-	return Vector3.UP  # Fallback
+		return -gradient.normalized()
+	return Vector3.UP
 
-func _sample_field(x: float, y: float, z: float) -> float:
-	# Sample the density field with trilinear interpolation
+func _sample_field_world(x: float, y: float, z: float) -> float:
+	# Sample directly from island data using world coordinates
 	var xi = int(floor(x))
 	var yi = int(floor(y))
 	var zi = int(floor(z))
 
-	# Bounds check
-	if xi < 0 or yi < 0 or zi < 0 or xi >= resolution - 1 or yi >= resolution - 1 or zi >= resolution - 1:
-		return 0.0
-
-	# Get the 8 surrounding voxel values
+	# Get the 8 surrounding voxel values from island
 	var fx = x - xi
 	var fy = y - yi
 	var fz = z - zi
 
-	var c000 = mat[zi][yi][xi] if zi < resolution and yi < resolution and xi < resolution else 0
-	var c100 = mat[zi][yi][xi + 1] if zi < resolution and yi < resolution and xi + 1 < resolution else 0
-	var c010 = mat[zi][yi + 1][xi] if zi < resolution and yi + 1 < resolution and xi < resolution else 0
-	var c110 = mat[zi][yi + 1][xi + 1] if zi < resolution and yi + 1 < resolution and xi + 1 < resolution else 0
-	var c001 = mat[zi + 1][yi][xi] if zi + 1 < resolution and yi < resolution and xi < resolution else 0
-	var c101 = mat[zi + 1][yi][xi + 1] if zi + 1 < resolution and yi < resolution and xi + 1 < resolution else 0
-	var c011 = mat[zi + 1][yi + 1][xi] if zi + 1 < resolution and yi + 1 < resolution and xi < resolution else 0
-	var c111 = mat[zi + 1][yi + 1][xi + 1] if zi + 1 < resolution and yi + 1 < resolution and xi + 1 < resolution else 0
+	var c000 = float(island_data.get_voxel(xi, yi, zi))
+	var c100 = float(island_data.get_voxel(xi + 1, yi, zi))
+	var c010 = float(island_data.get_voxel(xi, yi + 1, zi))
+	var c110 = float(island_data.get_voxel(xi + 1, yi + 1, zi))
+	var c001 = float(island_data.get_voxel(xi, yi, zi + 1))
+	var c101 = float(island_data.get_voxel(xi + 1, yi, zi + 1))
+	var c011 = float(island_data.get_voxel(xi, yi + 1, zi + 1))
+	var c111 = float(island_data.get_voxel(xi + 1, yi + 1, zi + 1))
 
 	# Trilinear interpolation
 	var c00 = c000 * (1 - fx) + c100 * fx
@@ -235,30 +240,69 @@ func _interpolate_vertex(x1: int, y1: int, z1: int, x2: int, y2: int, z2: int, v
 	return p1.lerp(p2, t)
 
 func _cpu_cube_march():
-
-
 	var newMeshInstance := MeshInstance3D.new()
 
 	var material := StandardMaterial3D.new()
-	material.cull_mode=BaseMaterial3D.CULL_DISABLED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.albedo_color = Color(0.5, 0.7, 0.9)
 	newMeshInstance.material_override = material
 
 	add_child(newMeshInstance)
 
-	for k in range(resolution - 1):
-		for j in range(resolution - 1):
-			for i in range(resolution - 1):
-				# processes cube starting with bounds [k k+1], [j, j+1], [i, i+1]; use lookup table in CubeMarcher.gd to get faces for THIS CUBE ONLY; append to meshinstance
+	for k in range(chunk_size):
+		for j in range(chunk_size):
+			for i in range(chunk_size):
 				_process_single_cube(newMeshInstance, i, j, k)
 				var tree := get_tree()
 				if tree != null && gen_speed > 0:
 					await get_tree().create_timer(gen_speed).timeout
- 
 
+	# Create collision mesh after rendering is complete
+	_create_collision_mesh(newMeshInstance)
 
+func _create_collision_mesh(mesh_instance: MeshInstance3D):
+	if mesh_instance.mesh == null:
+		return
 
-func _ready():
-	_generate()
-	_clear_children()
-	_spawn_visuals()
+	# Create StaticBody3D for collision
+	var static_body := StaticBody3D.new()
+	static_body.name = "CollisionBody"
+	add_child(static_body)
+
+	# Create CollisionShape3D
+	var collision_shape := CollisionShape3D.new()
+	collision_shape.name = "CollisionShape"
+	static_body.add_child(collision_shape)
+
+	# Create ConcavePolygonShape3D from the mesh
+	var shape := ConcavePolygonShape3D.new()
+	var mesh_arrays = mesh_instance.mesh.surface_get_arrays(0)
+	var vertices = mesh_arrays[Mesh.ARRAY_VERTEX]
+	var indices = mesh_arrays[Mesh.ARRAY_INDEX]
+
+	# Build faces array for ConcavePolygonShape3D
+	var faces := PackedVector3Array()
+	for i in range(0, indices.size(), 3):
+		if i + 2 < indices.size():
+			faces.append(vertices[indices[i]])
+			faces.append(vertices[indices[i + 1]])
+			faces.append(vertices[indices[i + 2]])
+
+	shape.set_faces(faces)
+	collision_shape.shape = shape
+
+	# Connect to body_entered signal to detect collisions
+	if static_body.has_signal("body_entered"):
+		static_body.body_entered.connect(_on_body_entered)
+
+func _on_body_entered(body: Node3D):
+	# Log collision when something enters the chunk collision
+	print("Collision detected in chunk at position ", position)
+	print("  Body: ", body.name)
+	print("  Body position: ", body.global_position)
+
+	# If the body is a CharacterBody3D or RigidBody3D, we can get more info
+	if body is CharacterBody3D:
+		print("  CharacterBody velocity: ", body.velocity)
+	elif body is RigidBody3D:
+		print("  RigidBody linear velocity: ", body.linear_velocity)
