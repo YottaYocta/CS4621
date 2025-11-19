@@ -7,11 +7,15 @@ shader_type spatial;
 
 const vec3 SUN_POSITION = vec3(5.0,6.0,0.0);
 
+uniform sampler2D noise_texture2 : hint_screen_texture, repeat_disable, filter_nearest;
 uniform sampler2D noise_texture : repeat_enable;
 
 
 uniform vec3 light_pos = vec3(5.0,6.0,0.0);
 uniform vec4 light_color : source_color;
+//i dont think we need these two
+//uniform float light_radius;
+//uniform float light_attenuation;
 
 
 // Signed distance function for a sphere
@@ -47,6 +51,10 @@ float noise(vec3 x) {
 	// Smooth noise mix from texture lookup and rescale it to [-1,1]
 
 	return mix(tex.x, tex.y, f.z) * 2.0 - 1.0;
+	  // Simplified lookup for single-channel noise
+    //vec2 uv = (p.xy + vec2(37.0,239.0)*p.z) / 256.0;
+    //float tex = textureLod(noise_texture, uv + f.xy / 256.0, 0.0).r;
+    //return tex * 2.0 - 1.0;
 }
 
 mat2 rotate2D(float a) {
@@ -89,17 +97,17 @@ float scene(vec3 p, float time) {
 	//p1.yz *= rotate2D(PI * 0.3);
 //
 	//float s1 = sdTorus(p1, vec2(1.3,0.9));
-	//float s2 = sd_sphere(p, RADIUS);
-	//float s3 = sdCapsule(p, vec3(-1.0, 2.0, 0.0), vec3(1.0, 2.0,0.0), 1.5);
+	//float s2 = sd_sphere(p, 1.5);
+	//float s3 = sdCapsule(p, vec3(-2.0, -1.5, 0.0), vec3(2.0, 1.5,0.0), 1.0);
 //
 	//float t = mod(nextStep(TIME, 3.0, 1.2), 4.0);
 //
 	//float dist = mix(s1,s2, clamp(t, 0.0, 1.0));
 	//dist = mix(dist, s3, clamp(t-1.0,0.0,1.0));
 	//dist = mix(dist, s1, clamp(t-3.0, 0.0, 1.0));
-	
-	////NO CHANGING SHAPES
-	float dist =  sdCapsule(p, vec3(-1.0, 2.0, 0.0), vec3(1.0, 2.0,0.0), 1.5);
+
+	//NO CHANGING SHAPES
+	float dist = sd_sphere(p, RADIUS);
 
 	float f = fbm(p, time);
 	return -dist + f; //adding a noise term to the inside of distance
@@ -146,7 +154,6 @@ void fragment() {
 
     // Camera origin and direction
     vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
-	//vec3 rd = normalize((inverse(MODEL_MATRIX) * vec4(NORMAL, 0.0)).xyz);
     vec3 rd = normalize(vert - ro);
 	//attempt 2--------
 	//vec3 ro = vec3(0.0,0.0,5.0);
@@ -168,7 +175,15 @@ void fragment() {
     vec4 d = raymarch(ro, rd, TIME);
     //vec3 p = ro + rd * d;
 	color = color * (1.0 - d.a) + d.rgb;
-	
+	//if (length(d) > 0.0) {
+		//color = d.xyz;
+	//} else {
+		//discard;
+	//}
+
+	//float absorption = exp(-d.a);      // smooth fade at cloud edges
+	//color = mix(color, d.rgb, d.a);  // blend sky with cloud
+
     ALBEDO = color;
 	ALPHA = d.a;
     //EMISSION = color;
