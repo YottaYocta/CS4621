@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=3 uid="uid://cibb1mcq53akv"]
+[gd_scene load_steps=14 format=3 uid="uid://cibb1mcq53akv"]
 
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
 [ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
 [ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
+[ext_resource type="Texture2D" uid="uid://dsq7038ysygll" path="res://Shaders/blue-noise.png" id="4_6fl2n"]
 [ext_resource type="Script" uid="uid://boc3685jfbuvs" path="res://lighting.gd" id="6_4nrna"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
@@ -30,6 +31,7 @@ noise = SubResource("FastNoiseLite_6fl2n")
 render_priority = 0
 shader = ExtResource("3_nf61q")
 shader_parameter/noise_texture = SubResource("NoiseTexture2D_4nrna")
+shader_parameter/blue_noise = ExtResource("4_6fl2n")
 shader_parameter/light_pos = Vector3(5, 6, 1)
 shader_parameter/light_color = Color(0.791512, 0.541183, 0.955301, 1)
 
@@ -53,7 +55,8 @@ environment = SubResource("Environment_8vdus")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.82726, 0, 0)
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.02673, 5.18826, -0.88419)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2159324, 5.9677744, 1.7723536)
+omni_range = 4.254
 
 [node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152444, 0.764138, -0.104662)
@@ -64,4 +67,4 @@ script = ExtResource("6_4nrna")
 light_node = NodePath("../OmniLight3D")
 
 [node name="MeshInstance3D2#Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.29108, 9.34613)
+transform = Transform3D(-0.9990399, 0.0070551587, 0.043239474, 0.021329682, 0.9404087, 0.33937666, -0.03826842, 0.3399731, -0.93965626, 0.3909278, 2.5712292, -5.226722)

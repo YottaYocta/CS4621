@@ -1,13 +1,15 @@
 shader_type spatial;
 
-#define MAX_STEPS 100
-#define MARCH_SIZE 0.08
+#define MAX_STEPS 40
+#define MARCH_SIZE 0.16
 #define PI 3.14159265359
 #define RADIUS 1.5
+#define ABSORPTION_COEFFICIENT 0.9
 
 const vec3 SUN_POSITION = vec3(5.0,6.0,0.0);
 
 uniform sampler2D noise_texture : repeat_enable;
+uniform sampler2D blue_noise : repeat_enable;
 
 
 uniform vec3 light_pos = vec3(5.0,6.0,0.0);
@@ -43,10 +45,10 @@ float noise(vec3 x) {
 
 	// sampling 2D slice from 3D position. z coord lets us move through "time" in the noise?
 	vec2 uv = (p.xy + vec2(37.0, 239.0) * p.z) + f.xy;
-	vec2 tex = texture(noise_texture, (uv + 0.5 + 0.1*TIME) / 256.0, 0.0).yx;
+	vec2 tex = texture(noise_texture, (uv + 0.5) / 256.0, 0.0).yx;
 	// Smooth noise mix from texture lookup and rescale it to [-1,1]
 
-	return mix(tex.x, tex.y, f.z) * 2.0 - 1.0;
+	return mix(tex.x, tex.y, f.z*.1) * 2.0 - 1.0;
 }
 
 mat2 rotate2D(float a) {
@@ -65,10 +67,11 @@ float nextStep(float t, float len, float smo) {
 float fbm(vec3 p, float time) {
 	// No idea abt these numbers
 	// Getting new vector of position with also time?
+	// Vector determines speed of inner cloud movement directions
 	vec3 q = p + TIME*0.5 *vec3(1.0,-0.2,-1.0);
 
 	float f = 0.0;
-	float scale = 0.25;
+	float scale = 0.45;
 	float factor = 2.02;
 	// 6 iterations of adjusting noise?
 	for(int i =0; i < 6; i++) {
@@ -97,28 +100,32 @@ float scene(vec3 p, float time) {
 	//float dist = mix(s1,s2, clamp(t, 0.0, 1.0));
 	//dist = mix(dist, s3, clamp(t-1.0,0.0,1.0));
 	//dist = mix(dist, s1, clamp(t-3.0, 0.0, 1.0));
-	
+
 	////NO CHANGING SHAPES
-	float dist =  sdCapsule(p, vec3(-1.0, 2.0, 0.0), vec3(1.0, 2.0,0.0), 1.5);
+	float dist = sdCapsule(p, vec3(-0.8, 2.0, 0.0), vec3(0.8, 2.0,0.0), 1.5);
 
 	float f = fbm(p, time);
 	return -dist + f; //adding a noise term to the inside of distance
 }
 
 // Raymarch function
-vec4 raymarch(vec3 ro, vec3 rd, float time) {
-	float depth = 0.0; //analogous to d0
+vec4 raymarch(vec3 ro, vec3 rd, float time, float offset, float box_t0, float box_t1) {
+	float depth = max(box_t0, 0.0); //analogous to d0, but start inside cube
 	vec3 p = ro + rd * depth;
+	depth += MARCH_SIZE * offset;
 	vec3 sunDirection = normalize(light_pos);
+
 	vec4 res = vec4(0.0);
+
     for (int i = 0; i < MAX_STEPS; i++) {
+		if (depth > box_t1) break;
         float density = scene(p, time); //analogous to dS
         // Only draw if density is greater than 0 (inside cloud)
       	if (density > 0.0) {
 			//Directional derivative lighting
 			float diffuse = clamp((scene(p, time) - scene(p + 0.3*sunDirection, time)) / 0.3, 0.0, 1.0);
 			vec3 lin = vec3(0.60,0.60,0.75)*1.1 + 0.8*vec3(1.0,0.6,0.3)*diffuse;
-			vec4 color = vec4(mix(vec3(1.0), vec3(0.0), density), density);
+			vec4 color = vec4(mix(light_color.rgb, vec3(0.0), density), density);
 			color.rgb *= lin;
 			color.rgb *= color.a;
       		res += color * (1.0 - res.a);
@@ -128,6 +135,21 @@ vec4 raymarch(vec3 ro, vec3 rd, float time) {
     }
     return res;
 }
+
+vec2 intersect_box(vec3 ro, vec3 rd) {
+    vec3 inv = 1.0 / rd;
+    vec3 tmin = (vec3(-1.0) - ro) * inv;
+    vec3 tmax = (vec3( 1.0) - ro) * inv;
+
+    vec3 t1v = min(tmin, tmax);
+    vec3 t2v = max(tmin, tmax);
+
+    float t0 = max(max(t1v.x, t1v.y), t1v.z);
+    float t1 = min(min(t2v.x, t2v.y), t2v.z);
+
+	return vec2(t0,t1);
+}
+
 
 varying vec3 vert;
 varying float time;
@@ -140,38 +162,55 @@ void vertex() {
 
 void fragment() {
 	// Called for every pixel the material is visible on.
+
 	// Normalized screen-space UV
+
+
     vec2 uv =fract(UV * vec2(3,2)) - 0.5;
-
-
     // Camera origin and direction
     vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
-	//vec3 rd = normalize((inverse(MODEL_MATRIX) * vec4(NORMAL, 0.0)).xyz);
-    vec3 rd = normalize(vert - ro);
-	//attempt 2--------
-	//vec3 ro = vec3(0.0,0.0,5.0);
-	//vec3 rd = normalize(vec3(uv, -1.0));
+
+	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec3 rd_world = normalize(world_pos - CAMERA_POSITION_WORLD);
+	vec3 rd = normalize((inverse(MODEL_MATRIX) * vec4(rd_world, 0.0)).xyz);
+	vec2 t_res = intersect_box(ro,rd);
+	float t0 = t_res.x;
+	float t1 = t_res.y;
+	if (t1 > max(t0, 0.0)){
+
+	    //vec3 rd = normalize(vert - ro);
+		//vec3 rd = normalize(vec3(uv, -1.0));
 
 
-	//Sun and sky?
-	vec3 sunDirection = normalize(light_pos);
-	float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
 
-	//base sky color
-	vec3 color = vec3(0.7,0.7,0.90);
-	//Add gradient vertically
-	color -= 0.8*vec3(0.90,0.75,0.90)*rd.y;
-	// Add sun color to sky
-	color += 0.5 * vec3(1.0,0.5,0.3) * pow(sun, 10.0);
+		//Sun and sky?
+		vec3 sunDirection = normalize(light_pos);
+		float sun = clamp(dot(sunDirection, rd), 0.0, 1.0);
 
-    // Perform raymarch
-    vec4 d = raymarch(ro, rd, TIME);
-    //vec3 p = ro + rd * d;
-	color = color * (1.0 - d.a) + d.rgb;
-	
-    ALBEDO = color;
-	ALPHA = d.a;
-    //EMISSION = color;
+		//base sky color
+		vec3 color = vec3(0.7,0.7,0.90);
+		//Add gradient vertically
+		color -= 0.8*vec3(0.90,0.75,0.90)*rd.y;
+		// Add sun color to sky
+		color += 0.5 * vec3(1.0,0.5,0.3) * pow(sun, 10.0);
+
+		float blueNoise = texture(blue_noise, UV.xy / 1024.0).r;
+	  	float offset = fract(blueNoise + float(int(floor(TIME))%32) / sqrt(0.5));
+
+	    // Perform raymarch
+	    vec4 d = raymarch(ro, rd, TIME, offset, t0, t1);
+	    //vec3 p = ro + rd * d;
+		color = color * (1.0 - d.a) + d.rgb;
+
+	    ALBEDO = color;
+		ALPHA = d.a;
+	    //EMISSION = color;
+	} else {
+		ALPHA = 0.0;
+	}
+
+
+
 }
 
 //void light() {
