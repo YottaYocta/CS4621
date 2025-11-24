@@ -1,7 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://c6h8qp1234abc"]
+[gd_scene load_steps=5 format=3 uid="uid://c6h8qp1234abc"]
 
 [ext_resource type="Script" uid="uid://c23t8eo572121" path="res://ProceduralTerrain.gd" id="1_terrain"]
-[ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_pga2l"]
+[ext_resource type="PackedScene" uid="uid://b3rh8ttwhogpr" path="res://character1.tscn" id="2_pga2l"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pga2l"]
+size = Vector2(20, 20)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_183ei"]
+data = PackedVector3Array(10, 0, 10, -10, 0, 10, 10, 0, -10, -10, 0, 10, -10, 0, -10, 10, 0, -10)
 
 [node name="TerrainDemo" type="Node3D"]
 
@@ -16,5 +22,13 @@ roughness = 0.0
 transform = Transform3D(0.866025, -0.433013, 0.25, 0.443546, 0.434522, -0.783874, 0.230796, 0.789741, 0.568367, 0, 50, 0)
 shadow_enabled = true
 
-[node name="PlayerController" parent="." instance=ExtResource("2_pga2l")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.4806, 0)
+[node name="charactermodel01" parent="." instance=ExtResource("2_pga2l")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74086356, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_pga2l")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D"]
+shape = SubResource("ConcavePolygonShape3D_183ei")
