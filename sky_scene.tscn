@@ -73,6 +73,7 @@ omni_range = 4.254
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 visible = false
 material_override = ExtResource("3_8vdus")
+material_overlay = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
 surface_material_override/0 = ExtResource("3_8vdus")
 script = ExtResource("6_4nrna")
