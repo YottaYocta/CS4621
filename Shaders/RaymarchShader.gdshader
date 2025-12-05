@@ -11,6 +11,8 @@ const vec3 SUN_POSITION = vec3(5.0,6.0,0.0);
 uniform sampler2D noise_texture : repeat_enable;
 uniform sampler2D blue_noise : repeat_enable;
 
+uniform vec3 boundsMin = -(vec3(4.,4.,4.));
+uniform vec3 boundsMax = vec3(4.,4.,4.);
 
 uniform vec3 light_pos = vec3(5.0,6.0,0.0);
 uniform vec4 light_color : source_color;
@@ -109,8 +111,8 @@ float scene(vec3 p, float time) {
 }
 
 // Raymarch function
-vec4 raymarch(vec3 ro, vec3 rd, float time, float offset, float box_t0, float box_t1) {
-	float depth = max(box_t0, 0.0); //analogous to d0, but start inside cube
+vec4 raymarch(vec3 ro, vec3 rd, float time, float offset) {
+	float depth = 0.0; //analogous to d0, but start inside cube
 	vec3 p = ro + rd * depth;
 	depth += MARCH_SIZE * offset;
 	vec3 sunDirection = normalize(light_pos);
@@ -118,7 +120,7 @@ vec4 raymarch(vec3 ro, vec3 rd, float time, float offset, float box_t0, float bo
 	vec4 res = vec4(0.0);
 
     for (int i = 0; i < MAX_STEPS; i++) {
-		if (depth > box_t1) break;
+		//if (depth > box_t1) break;
         float density = scene(p, time); //analogous to dS
         // Only draw if density is greater than 0 (inside cloud)
       	if (density > 0.0) {
@@ -137,17 +139,26 @@ vec4 raymarch(vec3 ro, vec3 rd, float time, float offset, float box_t0, float bo
 }
 
 vec2 intersect_box(vec3 ro, vec3 rd) {
-    vec3 inv = 1.0 / rd;
-    vec3 tmin = (vec3(-1.0) - ro) * inv;
-    vec3 tmax = (vec3( 1.0) - ro) * inv;
+    vec3 t0 = (boundsMin - ro) / rd;
+	vec3 t1 = (boundsMax - ro) / rd;
+    vec3 tmin = min(t0,t1);
+    vec3 tmax = max(t0,t1);
 
-    vec3 t1v = min(tmin, tmax);
-    vec3 t2v = max(tmin, tmax);
+	float dstA = max(max(tmin.x, tmin.y), tmin.z);
+	float dstB = min(tmax.x, min(tmax.y, tmax.z));
 
-    float t0 = max(max(t1v.x, t1v.y), t1v.z);
-    float t1 = min(min(t2v.x, t2v.y), t2v.z);
+    //1) Ray intersects box from outside (0 <= dstA <= dstB)
+	// dstA is dst to nearest intersection, dstB dst to far intersection
 
-	return vec2(t0,t1);
+	//2) Ray intersects box from inside (dstA < 0 < dstB)
+	//dstA is the dst to intersection behind the ray, dstB is dst to forward intersection
+
+	//3) Ray misses box (dstA > dstB)
+
+	float dstToBox = max(0, dstA);
+	float dstInsideBox = max(0, dstB - dstToBox);
+
+	return vec2(dstToBox, dstInsideBox);
 }
 
 
@@ -168,15 +179,18 @@ void fragment() {
 
     vec2 uv =fract(UV * vec2(3,2)) - 0.5;
     // Camera origin and direction
-    vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
+    //vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
+	vec3 ro = CAMERA_POSITION_WORLD;
+	vec3 rd = VIEW;
 
-	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vec3 rd_world = normalize(world_pos - CAMERA_POSITION_WORLD);
-	vec3 rd = normalize((inverse(MODEL_MATRIX) * vec4(rd_world, 0.0)).xyz);
-	vec2 t_res = intersect_box(ro,rd);
-	float t0 = t_res.x;
-	float t1 = t_res.y;
-	if (t1 > max(t0, 0.0)){
+	//vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	//vec3 rd_world = normalize(world_pos - CAMERA_POSITION_WORLD);
+	//vec3 rd = normalize((inverse(MODEL_MATRIX) * vec4(rd_world, 0.0)).xyz);
+
+	vec2 rayBoxInfo = intersect_box(ro,rd);
+	float dstToBox = rayBoxInfo.x;
+	float dstInsideBox = rayBoxInfo.y;
+	if (dstInsideBox > 0.0){
 
 	    //vec3 rd = normalize(vert - ro);
 		//vec3 rd = normalize(vec3(uv, -1.0));
@@ -198,7 +212,7 @@ void fragment() {
 	  	float offset = fract(blueNoise + float(int(floor(TIME))%32) / sqrt(0.5));
 
 	    // Perform raymarch
-	    vec4 d = raymarch(ro, rd, TIME, offset, t0, t1);
+	    vec4 d = raymarch(ro, rd, TIME, offset);
 	    //vec3 p = ro + rd * d;
 		color = color * (1.0 - d.a) + d.rgb;
 

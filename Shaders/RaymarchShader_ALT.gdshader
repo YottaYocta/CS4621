@@ -1,4 +1,13 @@
 shader_type spatial;
+render_mode cull_disabled;
+//render everything first, use depth buffer to do one pass with all geometry. then bind depth buffer as a texture and reference as value in shader.
+//then do another pass and do shader for all pixels. when you march and dist from camera is greater than depth stored in buffer then quit. if pixels are way above clouds you could not do anything
+//look into full screen pass/quad for shader. look at color correction for an example, want for every pixel not rly geometry
+//do the inverse of the projection urself
+
+//look into disabling backface culling - kinda works, order of rendering objects inside gets kinda weird though
+// try flipping normals to only drop back - also kinda works same as above
+// for both the occlusion makes the most sense if cull_disabled totally
 
 #define MAX_STEPS 40
 #define MARCH_SIZE 0.16
@@ -10,9 +19,13 @@ const vec3 SUN_POSITION = vec3(5.0,6.0,0.0);
 uniform sampler2D noise_texture : repeat_enable;
 uniform sampler2D blue_noise : repeat_enable;
 
+uniform vec3 boundsMin = -(vec3(2.5,2.5,1));
+uniform vec3 boundsMax = vec3(2.5,2.5,1);
 
 uniform vec3 light_pos = vec3(5.0,6.0,0.0);
 uniform vec4 light_color : source_color;
+
+uniform vec3 cloudPos = vec3(0,0,0);
 
 
 // Signed distance function for a sphere
@@ -62,7 +75,7 @@ float nextStep(float t, float len, float smo) {
 	return smoothstep(0.0, smo, tt) + stp;
 }
 
-//Fracal Brownian Motion
+//Fractal Brownian Motion
 float fbm(vec3 p, float time) {
 	// No idea abt these numbers
 	// Getting new vector of position with also time?
@@ -101,7 +114,7 @@ float scene(vec3 p, float time) {
 	//dist = mix(dist, s1, clamp(t-3.0, 0.0, 1.0));
 
 	////NO CHANGING SHAPES
-	float dist = sdCapsule(p, vec3(-0.8, 2.0, 0.0), vec3(0.8, 2.0,0.0), 1.5);
+	float dist = sdCapsule(p, vec3(-0.8, 1.0, 0.0), vec3(0.8, 1.0,0.0), 1.5);
 
 	float f = fbm(p, time);
 	return -dist + f; //adding a noise term to the inside of distance
@@ -132,6 +145,18 @@ vec4 raymarch(vec3 ro, vec3 rd, float time, float offset) {
     return res;
 }
 
+bool insideBox(vec3 point) {
+	// Check if the point's x-coordinate is within the box's x-range
+    bool x_in_bounds = point.x >= boundsMin.x && point.x <= boundsMax.x;
+
+    // Check if the point's y-coordinate is within the box's y-range
+    bool y_in_bounds = point.y >= boundsMin.y && point.y <= boundsMax.y;
+
+    // Check if the point's z-coordinate is within the box's z-range
+    bool z_in_bounds = point.z >= boundsMin.z && point.z <= boundsMax.z;
+	return x_in_bounds && y_in_bounds && z_in_bounds;
+}
+
 varying vec3 vert;
 varying float time;
 
@@ -148,6 +173,10 @@ void fragment() {
     // Camera origin and direction
     vec3 ro = (inverse(MODEL_MATRIX) * vec4(CAMERA_POSITION_WORLD,1)).xyz;
     vec3 rd = normalize(vert - ro);
+
+	//if (insideBox(ro)) {
+		//rd = normalize(ro-vert);
+	//}
 
 
 

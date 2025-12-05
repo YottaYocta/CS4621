@@ -1,9 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://cibb1mcq53akv"]
+[gd_scene load_steps=18 format=3 uid="uid://cibb1mcq53akv"]
 
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="1_had3h"]
 [ext_resource type="Material" uid="uid://cvc7v6rimrv7t" path="res://Shaders/RaymarchMaterial.material" id="3_8vdus"]
-[ext_resource type="Shader" uid="uid://iy7eyi1bn5yj" path="res://Shaders/RaymarchShader.gdshader" id="3_nf61q"]
-[ext_resource type="Texture2D" uid="uid://dsq7038ysygll" path="res://Shaders/blue-noise.png" id="4_6fl2n"]
+[ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="4_6fl2n"]
+[ext_resource type="Shader" uid="uid://c765ms8ml02rr" path="res://Shaders/SolidColor.gdshader" id="4_8vdus"]
 [ext_resource type="Script" uid="uid://boc3685jfbuvs" path="res://lighting.gd" id="6_4nrna"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5blq"]
@@ -22,22 +22,30 @@ sky = SubResource("Sky_nf61q")
 ambient_light_source = 3
 reflected_light_source = 2
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_6fl2n"]
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4nrna"]
-noise = SubResource("FastNoiseLite_6fl2n")
+[sub_resource type="BoxMesh" id="BoxMesh_i2a5m"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4nrna"]
-render_priority = 0
-shader = ExtResource("3_nf61q")
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_4nrna")
-shader_parameter/blue_noise = ExtResource("4_6fl2n")
-shader_parameter/light_pos = Vector3(5, 6, 1)
-shader_parameter/light_color = Color(0.791512, 0.541183, 0.955301, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_6fl2n"]
 material = SubResource("ShaderMaterial_4nrna")
-size = Vector3(8, 8, 8)
+size = Vector3(5, 5, 2)
+
+[sub_resource type="QuadMesh" id="QuadMesh_4nrna"]
+size = Vector2(2, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_6fl2n"]
+render_priority = 0
+shader = ExtResource("4_8vdus")
+shader_parameter/color = Color(0.8666667, 0.1882353, 0.16078432, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4nrna"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8vdus"]
+render_priority = 0
+shader = ExtResource("4_8vdus")
+shader_parameter/color = Color(0.3724575, 0.56774753, 1, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_6fl2n"]
 
 [node name="SkyScene" type="Node3D"]
 
@@ -45,26 +53,48 @@ size = Vector3(8, 8, 8)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.753895, 0, 2.93522)
 
 [node name="Plane" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.7, 0, 0, 0, 0.979581, 0.038662, 0, -0.0180392, 2.09946, 0, 0, 0)
+transform = Transform3D(1.7, 0, 0, 0, 0.979581, 0.038662, 0, -0.0180392, 2.09946, 0, 0.64515054, -0.083984256)
 mesh = SubResource("PlaneMesh_h5blq")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_8vdus")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.82726, 0, 0)
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 1, 0)
+visible = false
+mesh = SubResource("BoxMesh_i2a5m")
 
 [node name="OmniLight3D" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.2159324, 5.9677744, 1.7723536)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8399637, 5.9677744, 1.7723536)
+visible = false
 omni_range = 4.254
 
 [node name="Cloud" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_node")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.152444, 0.764138, -0.104662)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+visible = false
 material_override = ExtResource("3_8vdus")
 mesh = SubResource("BoxMesh_6fl2n")
 surface_material_override/0 = ExtResource("3_8vdus")
 script = ExtResource("6_4nrna")
 light_node = NodePath("../OmniLight3D")
 
-[node name="MeshInstance3D2#Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-0.9990399, 0.0070551587, 0.043239474, 0.021329682, 0.9404087, 0.33937666, -0.03826842, 0.3399731, -0.93965626, 0.3909278, 2.5712292, -5.226722)
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(0.99921817, -0.028726397, -0.027166305, 0.029539365, 0.99911296, 0.030013233, 0.026280047, -0.030792147, 0.9991802, 0.391, 2.571, 4.836)
+near = 0.5
+
+[node name="ScreenShader" type="MeshInstance3D" parent="Camera"]
+transform = Transform3D(1, 0, 3.7252903e-09, -9.313226e-10, 1.0000001, -2.9802322e-08, 0, 0, 1.0000001, 0, 0, 0)
+material_override = ExtResource("4_6fl2n")
+extra_cull_margin = 3985.17
+mesh = SubResource("QuadMesh_4nrna")
+surface_material_override/0 = ExtResource("4_6fl2n")
+
+[node name="Box" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.88668597, 0.91058254, 1.2325268)
+material_override = SubResource("ShaderMaterial_6fl2n")
+mesh = SubResource("BoxMesh_4nrna")
+
+[node name="Sphere" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.80586517, 0.73935914, -1.1549797)
+material_override = SubResource("ShaderMaterial_8vdus")
+mesh = SubResource("SphereMesh_6fl2n")
