@@ -1,0 +1,132 @@
+[gd_scene load_steps=27 format=3 uid="uid://ciu7pl8ncvxi2"]
+
+[ext_resource type="PackedScene" uid="uid://dju5r3cvql64" path="res://clo.glb" id="1_0eguw"]
+[ext_resource type="Script" uid="uid://b68w8jsbpsage" path="res://clo.gd" id="2_gf8kb"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0eguw"]
+albedo_color = Color(0.2509804, 0.13725491, 0.11372549, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gf8kb"]
+albedo_color = Color(0.2509804, 0.13725491, 0.11372549, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fpsur"]
+albedo_color = Color(0.2509804, 0.13725491, 0.11372549, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6i4fy"]
+albedo_color = Color(0.1764706, 0.10980392, 0.09019608, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sihgh"]
+albedo_color = Color(0.1764706, 0.10980392, 0.09019608, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2j13v"]
+radius = 0.35
+height = 1.2
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gf8kb"]
+animation = &"falling"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fpsur"]
+animation = &"flying"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_6i4fy"]
+animation = &"idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_sihgh"]
+animation = &"running"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_2j13v"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1ww4w"]
+xfade_time = 0.2
+
+[sub_resource type="Curve" id="Curve_qqa7p"]
+_data = [Vector2(0, 0), 0.0, 0.25109783, 0, 0, Vector2(1, 0.9775766), 3.6643739, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_cjijv"]
+xfade_time = 0.3
+xfade_curve = SubResource("Curve_qqa7p")
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_a4skp"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_olkh7"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_56k5t"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ugosd"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_4gome"]
+switch_mode = 2
+advance_mode = 0
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_05tp8"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_7tsvq"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1kaek"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_h0577"]
+xfade_time = 0.3
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_sycfi"]
+states/End/position = Vector2(907.5, 129.5)
+states/Start/position = Vector2(209.5, 112.5)
+states/falling/node = SubResource("AnimationNodeAnimation_gf8kb")
+states/falling/position = Vector2(549.36, 20.740654)
+states/flying/node = SubResource("AnimationNodeAnimation_fpsur")
+states/flying/position = Vector2(711.36, 21.201591)
+states/idle/node = SubResource("AnimationNodeAnimation_6i4fy")
+states/idle/position = Vector2(541.43, 167.5)
+states/running/node = SubResource("AnimationNodeAnimation_sihgh")
+states/running/position = Vector2(364.93, 20.279716)
+transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_2j13v"), "idle", "running", SubResource("AnimationNodeStateMachineTransition_1ww4w"), "running", "idle", SubResource("AnimationNodeStateMachineTransition_cjijv"), "idle", "falling", SubResource("AnimationNodeStateMachineTransition_a4skp"), "falling", "idle", SubResource("AnimationNodeStateMachineTransition_olkh7"), "idle", "flying", SubResource("AnimationNodeStateMachineTransition_56k5t"), "flying", "idle", SubResource("AnimationNodeStateMachineTransition_ugosd"), "idle", "End", SubResource("AnimationNodeStateMachineTransition_4gome"), "running", "flying", SubResource("AnimationNodeStateMachineTransition_05tp8"), "flying", "running", SubResource("AnimationNodeStateMachineTransition_7tsvq"), "falling", "running", SubResource("AnimationNodeStateMachineTransition_1kaek"), "running", "falling", SubResource("AnimationNodeStateMachineTransition_h0577")]
+graph_offset = Vector2(69.35999, -30.899971)
+
+[node name="clo" instance=ExtResource("1_0eguw")]
+script = ExtResource("2_gf8kb")
+
+[node name="Armature" parent="." index="0"]
+transform = Transform3D(-0.1613807, -1.4108348e-08, 6.1669547e-16, 0, -7.054174e-09, -0.1613807, 1.4108348e-08, -0.1613807, 7.054174e-09, 0, -0.008227137, 0)
+
+[node name="Hair" parent="Armature/Skeleton3D/mixamorig_Head" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_0eguw")
+
+[node name="Sphere" parent="Armature/Skeleton3D/mixamorig_Head" index="3"]
+surface_material_override/0 = SubResource("StandardMaterial3D_gf8kb")
+
+[node name="Sphere_001" parent="Armature/Skeleton3D/mixamorig_Head" index="4"]
+surface_material_override/0 = SubResource("StandardMaterial3D_gf8kb")
+
+[node name="Boots" parent="Armature/Skeleton3D" index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_fpsur")
+
+[node name="cloak" parent="Armature/Skeleton3D" index="2"]
+surface_material_override/0 = SubResource("StandardMaterial3D_6i4fy")
+
+[node name="Shirt" parent="Armature/Skeleton3D" index="4"]
+surface_material_override/0 = SubResource("StandardMaterial3D_sihgh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.57935476, 0)
+shape = SubResource("CapsuleShape3D_2j13v")
+
+[node name="SpringArmPivot" type="Node3D" parent="." index="3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.57935476, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="SpringArmPivot" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5080453, 0)
+
+[node name="Camera3D" type="Camera3D" parent="SpringArmPivot/SpringArm3D" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19409966, 0, 0)
+
+[node name="AnimationTree" type="AnimationTree" parent="." index="4"]
+tree_root = SubResource("AnimationNodeStateMachine_sycfi")
+anim_player = NodePath("../AnimationPlayer")
