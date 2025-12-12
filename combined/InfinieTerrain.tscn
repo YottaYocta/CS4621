@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=10 format=3 uid="uid://dmt4cuvputyx0"]
 
-[ext_resource type="Script" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
-[ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_player"]
+[ext_resource type="Script" uid="uid://pa1p41gumstm" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
+[ext_resource type="PackedScene" uid="uid://b3rh8ttwhogpr" path="res://character1.tscn" id="2_3qhwe"]
+[ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="3_h5adp"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
@@ -23,8 +24,22 @@ sky = SubResource("Sky_main")
 sky_custom_fov = 104.2
 ambient_light_source = 3
 
-[node name="InfinieTerrain" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3qhwe"]
+cull_mode = 2
+albedo_color = Color(0.28116247, 0.3452877, 0.7360431, 1)
+metallic = 0.2
+metallic_specular = 0.4
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h5adp"]
+size = Vector2(3000, 3000)
+
+[sub_resource type="QuadMesh" id="QuadMesh_h5adp"]
+size = Vector2(2, 2)
+
+[node name="InfinieTerrain" type="Node3D" node_paths=PackedStringArray("player")]
 script = ExtResource("1_terrain")
+chunk_load_radius = 2
+player = NodePath("charactermodel01")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")
@@ -33,5 +48,17 @@ environment = SubResource("Environment_main")
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 0)
 shadow_enabled = true
 
-[node name="PlayerController" parent="." instance=ExtResource("2_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
+[node name="Water" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.003025, 0, 0, 0, 1.003025, 0, 0, 0, 1.003025, 0, 15.430273, 0)
+material_override = SubResource("StandardMaterial3D_3qhwe")
+mesh = SubResource("PlaneMesh_h5adp")
+
+[node name="charactermodel01" parent="." instance=ExtResource("2_3qhwe")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.44467, 0)
+
+[node name="ScreenShader" type="MeshInstance3D" parent="charactermodel01"]
+transform = Transform3D(1, 1.4551915e-09, 3.7252903e-09, 1.5133992e-09, 1.0000002, -2.7939677e-08, 0, 0, 1.0000001, -0.6101004, 0.01753974, 0.016587257)
+material_override = ExtResource("3_h5adp")
+extra_cull_margin = 3985.17
+mesh = SubResource("QuadMesh_h5adp")
+surface_material_override/0 = ExtResource("3_h5adp")

@@ -8,14 +8,18 @@ class_name IInfiniteTerrain
 
 @export var chunk_size: int = 16
 @export var chunk_load_radius: int = 1  # Number of chunks to load around player
+@export var use_compute_shader: bool = true  # Use GPU compute shader for meshing
 
 var chunk_generator: IChunkGenerator
 var terrain_data: InfiniteTerrainData
 var active_chunks := {}
-var player: Node3D = null
+@export var player: Node3D = null
 var last_player_chunk: Vector3i = Vector3i(-999, -999, -999)
 
 func _ready():
+	# Set compute shader mode
+	IChunkMesher.use_compute_shader = use_compute_shader
+
 	terrain_data = InfiniteTerrainData.new()
 	add_child(terrain_data)
 
@@ -23,13 +27,16 @@ func _ready():
 	add_child(chunk_generator)
 
 	await get_tree().process_frame
-	player = get_node_or_null("PlayerController")
 
 	if player == null:
 		print("Warning: PlayerController not found!")
 		return
 
-	# initial chunk generation
+	if player.has_signal("block_add_requested"):
+		player.block_add_requested.connect(_on_block_add_requested)
+	if player.has_signal("block_delete_requested"):
+		player.block_delete_requested.connect(_on_block_delete_requested)
+
 	_update_chunks()
 
 func _process(_delta):
@@ -39,7 +46,6 @@ func _process(_delta):
 	if player == null:
 		return
 
-	# track player pos
 	var current_chunk = _world_to_chunk(player.global_position)
 
 	if current_chunk != last_player_chunk:
@@ -111,3 +117,184 @@ func get_chunk_at(chunk_coord: Vector3i) -> IChunk:
 	if active_chunks.has(chunk_coord):
 		return active_chunks[chunk_coord]
 	return null
+
+func _on_block_add_requested(global_pos: Vector3, normal: Vector3):
+	"""Handle block placement with area effect"""
+	print("Block add requested at: ", global_pos, " normal: ", normal)
+
+	var offset_pos = global_pos + normal * 0.5
+
+	var center_pos = Vector3i(
+		int(floor(offset_pos.x)),
+		int(floor(offset_pos.y)),
+		int(floor(offset_pos.z))
+	)
+
+	var effect_radius = 3  # Affect voxels within this radius
+	var center_strength = -3.0  # Strong solid value at center
+
+	var affected_chunks_set = {}
+	var modified_voxels = []  # Track all modified voxel positions
+
+	for dx in range(-effect_radius, effect_radius + 1):
+		for dy in range(-effect_radius, effect_radius + 1):
+			for dz in range(-effect_radius, effect_radius + 1):
+				var x = center_pos.x + dx
+				var y = center_pos.y + dy
+				var z = center_pos.z + dz
+
+				var dist = Vector3(dx, dy, dz).length()
+
+				if dist <= effect_radius:
+					var falloff = 1.0 - (dist / float(effect_radius))
+					falloff = clamp(falloff, 0.0, 1.0)
+
+					# Apply modification with falloff
+					var value = center_strength * falloff
+					terrain_data.set_voxel(x, y, z, value)
+					modified_voxels.append(Vector3i(x, y, z))
+
+	for voxel_pos in modified_voxels:
+		_add_affected_chunks(voxel_pos, affected_chunks_set)
+
+	# Remesh all affected chunks
+	for chunk_coord in affected_chunks_set.keys():
+		_remesh_chunk_at(chunk_coord)
+
+func _on_block_delete_requested(global_pos: Vector3, normal: Vector3):
+	"""Handle block deletion with area effect"""
+	print("Block delete requested at: ", global_pos, " normal: ", normal)
+
+	var center_pos = Vector3i(
+		int(floor(global_pos.x)),
+		int(floor(global_pos.y)),
+		int(floor(global_pos.z))
+	)
+
+	var effect_radius = 3  # Affect voxels within this radius
+	var center_strength = 3.0  # Strong air value at center
+
+	var affected_chunks_set = {}
+	var modified_voxels = []  # Track all modified voxel positions
+
+	for dx in range(-effect_radius, effect_radius + 1):
+		for dy in range(-effect_radius, effect_radius + 1):
+			for dz in range(-effect_radius, effect_radius + 1):
+				var x = center_pos.x + dx
+				var y = center_pos.y + dy
+				var z = center_pos.z + dz
+
+				# Calculate distance from center
+				var dist = Vector3(dx, dy, dz).length()
+
+				if dist <= effect_radius:
+					# Calculate falloff
+					var falloff = 1.0 - (dist / float(effect_radius))
+					falloff = clamp(falloff, 0.0, 1.0)
+
+					# Apply modification with falloff
+					var value = center_strength * falloff
+					terrain_data.set_voxel(x, y, z, value)
+					modified_voxels.append(Vector3i(x, y, z))
+
+	# Find all chunks affected by modifications (including neighbors for boundaries)
+	for voxel_pos in modified_voxels:
+		_add_affected_chunks(voxel_pos, affected_chunks_set)
+
+	# Remesh all affected chunks
+	for chunk_coord in affected_chunks_set.keys():
+		_remesh_chunk_at(chunk_coord)
+
+func _remesh_affected_chunks(voxel_pos: Vector3i):
+	"""Remesh chunks affected by a voxel modification"""
+	var chunk_coord = Vector3i(
+		int(floor(float(voxel_pos.x) / chunk_size)),
+		int(floor(float(voxel_pos.y) / chunk_size)),
+		int(floor(float(voxel_pos.z) / chunk_size))
+	)
+
+	var chunks_to_remesh = {}
+	chunks_to_remesh[chunk_coord] = true
+
+	# Check if on chunk boundaries
+	var local_x = voxel_pos.x - (chunk_coord.x * chunk_size)
+	var local_y = voxel_pos.y - (chunk_coord.y * chunk_size)
+	var local_z = voxel_pos.z - (chunk_coord.z * chunk_size)
+
+	# If on boundary, add neighboring chunks
+	if local_x == 0:
+		chunks_to_remesh[chunk_coord + Vector3i(-1, 0, 0)] = true
+	elif local_x == chunk_size - 1:
+		chunks_to_remesh[chunk_coord + Vector3i(1, 0, 0)] = true
+
+	if local_y == 0:
+		chunks_to_remesh[chunk_coord + Vector3i(0, -1, 0)] = true
+	elif local_y == chunk_size - 1:
+		chunks_to_remesh[chunk_coord + Vector3i(0, 1, 0)] = true
+
+	if local_z == 0:
+		chunks_to_remesh[chunk_coord + Vector3i(0, 0, -1)] = true
+	elif local_z == chunk_size - 1:
+		chunks_to_remesh[chunk_coord + Vector3i(0, 0, 1)] = true
+
+	# Trigger remesh for all affected chunks
+	for coord in chunks_to_remesh.keys():
+		_remesh_chunk_at(coord)
+
+func _add_affected_chunks(voxel_pos: Vector3i, chunks_set: Dictionary):
+	"""Add chunk containing voxel and neighbors if on boundary"""
+	var chunk_coord = Vector3i(
+		int(floor(float(voxel_pos.x) / chunk_size)),
+		int(floor(float(voxel_pos.y) / chunk_size)),
+		int(floor(float(voxel_pos.z) / chunk_size))
+	)
+
+	chunks_set[chunk_coord] = true
+
+	# Check if voxel is on chunk boundaries and add neighboring chunks
+	var local_x = voxel_pos.x - (chunk_coord.x * chunk_size)
+	var local_y = voxel_pos.y - (chunk_coord.y * chunk_size)
+	var local_z = voxel_pos.z - (chunk_coord.z * chunk_size)
+
+	# Add neighboring chunks if on or near boundaries (within 1 voxel)
+	if local_x <= 1:
+		chunks_set[chunk_coord + Vector3i(-1, 0, 0)] = true
+	if local_x >= chunk_size - 1:
+		chunks_set[chunk_coord + Vector3i(1, 0, 0)] = true
+
+	if local_y <= 1:
+		chunks_set[chunk_coord + Vector3i(0, -1, 0)] = true
+	if local_y >= chunk_size - 1:
+		chunks_set[chunk_coord + Vector3i(0, 1, 0)] = true
+
+	if local_z <= 1:
+		chunks_set[chunk_coord + Vector3i(0, 0, -1)] = true
+	if local_z >= chunk_size - 1:
+		chunks_set[chunk_coord + Vector3i(0, 0, 1)] = true
+
+func _remesh_chunk_at(coord: Vector3i):
+	"""Remesh a single chunk by its coordinate"""
+	var chunk = get_chunk_at(coord)
+	if chunk != null:
+		print("Remeshing chunk at: ", coord)
+		var world_pos = Vector3i(
+			coord.x * chunk_size,
+			coord.y * chunk_size,
+			coord.z * chunk_size
+		)
+
+		var voxel_data := []
+		for k in range(chunk_size + 1):
+			var slice := []
+			for j in range(chunk_size + 1):
+				var row := []
+				for i in range(chunk_size + 1):
+					var wx = world_pos.x + i
+					var wy = world_pos.y + j
+					var wz = world_pos.z + k
+					row.append(terrain_data.get_voxel(wx, wy, wz))
+				slice.append(row)
+			voxel_data.append(slice)
+
+		# Setting voxelData triggers automatic remesh
+		chunk.voxelData = voxel_data
