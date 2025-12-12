@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=12 format=3 uid="uid://dmt4cuvputyx0"]
 
 [ext_resource type="Script" uid="uid://pa1p41gumstm" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
 [ext_resource type="PackedScene" uid="uid://b3rh8ttwhogpr" path="res://character1.tscn" id="2_3qhwe"]
+[ext_resource type="PackedScene" uid="uid://ciu7pl8ncvxi2" path="res://clo.tscn" id="3_fybgn"]
 [ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="3_h5adp"]
 [ext_resource type="Script" uid="uid://cf50hn8vfat07" path="res://CloudFollow.gd" id="4_4nnfw"]
 
@@ -56,12 +57,17 @@ mesh = SubResource("PlaneMesh_h5adp")
 
 [node name="charactermodel01" parent="." instance=ExtResource("2_3qhwe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.44467, 0)
+visible = false
 
-[node name="ScreenShader" type="MeshInstance3D" parent="charactermodel01"]
-transform = Transform3D(1, 1.4551915e-09, 3.7252903e-09, 1.5133992e-09, 1.0000002, -2.7939677e-08, 0, 0, 1.0000001, -0.6101004, 0.01753974, 0.016587257)
+[node name="clo" parent="." instance=ExtResource("3_fybgn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 1)
+
+[node name="ScreenShader" type="MeshInstance3D" parent="clo"]
+transform = Transform3D(1, 1.4551915e-09, 3.7252903e-09, 1.5133992e-09, 1.0000002, -2.7939677e-08, 0, 0, 1.0000001, -0.6101004, 0.4622097, -0.98341274)
 material_override = ExtResource("3_h5adp")
 extra_cull_margin = 3985.17
 mesh = SubResource("QuadMesh_h5adp")
+skeleton = NodePath("../../charactermodel01")
 surface_material_override/0 = ExtResource("3_h5adp")
 script = ExtResource("4_4nnfw")
-player_path = NodePath("..")
+player_path = NodePath("../../charactermodel01")
