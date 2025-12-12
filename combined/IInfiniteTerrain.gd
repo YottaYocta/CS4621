@@ -14,6 +14,7 @@ var chunk_generator: IChunkGenerator
 var terrain_data: InfiniteTerrainData
 var active_chunks := {}
 @export var player: Node3D = null
+@export var terrain_raycast: TerrainRayCast = null
 var last_player_chunk: Vector3i = Vector3i(-999, -999, -999)
 
 func _ready():
@@ -32,10 +33,15 @@ func _ready():
 		print("Warning: PlayerController not found!")
 		return
 
-	if player.has_signal("block_add_requested"):
-		player.block_add_requested.connect(_on_block_add_requested)
-	if player.has_signal("block_delete_requested"):
-		player.block_delete_requested.connect(_on_block_delete_requested)
+	# Connect to terrain raycast signals for terrain modification
+	if terrain_raycast != null:
+		if terrain_raycast.has_signal("block_add_requested"):
+			terrain_raycast.block_add_requested.connect(_on_block_add_requested)
+		if terrain_raycast.has_signal("block_delete_requested"):
+			terrain_raycast.block_delete_requested.connect(_on_block_delete_requested)
+		print("Connected to TerrainRayCast signals")
+	else:
+		print("Warning: TerrainRayCast not assigned!")
 
 	_update_chunks()
 

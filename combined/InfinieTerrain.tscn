@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=14 format=3 uid="uid://dmt4cuvputyx0"]
 
 [ext_resource type="Script" uid="uid://pa1p41gumstm" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
 [ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="2_2f1c7"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://ciu7pl8ncvxi2" path="res://clo.tscn" id="3_fybgn"]
 [ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="3_h5adp"]
 [ext_resource type="Script" uid="uid://cf50hn8vfat07" path="res://CloudFollow.gd" id="4_4nnfw"]
+[ext_resource type="Script" uid="uid://dxe6mobwevger" path="res://combined/TerrainRayCast.gd" id="8_2f1c7"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_p1pcx"]
 shader = ExtResource("2_2f1c7")
@@ -30,10 +31,11 @@ size = Vector2(3000, 3000)
 [sub_resource type="QuadMesh" id="QuadMesh_h5adp"]
 size = Vector2(2, 2)
 
-[node name="InfinieTerrain" type="Node3D" node_paths=PackedStringArray("player")]
+[node name="InfinieTerrain" type="Node3D" node_paths=PackedStringArray("player", "terrain_raycast")]
 script = ExtResource("1_terrain")
 chunk_load_radius = 2
 player = NodePath("clo")
+terrain_raycast = NodePath("clo/RayCast3D")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")
@@ -58,3 +60,6 @@ mesh = SubResource("QuadMesh_h5adp")
 skeleton = NodePath("")
 surface_material_override/0 = ExtResource("3_h5adp")
 script = ExtResource("4_4nnfw")
+
+[node name="RayCast3D" type="RayCast3D" parent="clo"]
+script = ExtResource("8_2f1c7")
