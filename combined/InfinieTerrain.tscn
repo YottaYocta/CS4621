@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=11 format=3 uid="uid://dmt4cuvputyx0"]
 
 [ext_resource type="Script" uid="uid://pa1p41gumstm" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
 [ext_resource type="PackedScene" uid="uid://b3rh8ttwhogpr" path="res://character1.tscn" id="2_3qhwe"]
 [ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="3_h5adp"]
+[ext_resource type="Script" uid="uid://cf50hn8vfat07" path="res://CloudFollow.gd" id="4_4nnfw"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
@@ -62,3 +63,5 @@ material_override = ExtResource("3_h5adp")
 extra_cull_margin = 3985.17
 mesh = SubResource("QuadMesh_h5adp")
 surface_material_override/0 = ExtResource("3_h5adp")
+script = ExtResource("4_4nnfw")
+player_path = NodePath("..")

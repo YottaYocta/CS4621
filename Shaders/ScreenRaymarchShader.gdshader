@@ -21,6 +21,15 @@ uniform sampler2D DEPTH_TEXTURE : hint_depth_texture;
 uniform vec3 cloudContainerPos;
 uniform vec3 cloudCountainerScale;
 
+float remap_density(float d) {
+    d = clamp(d, 0.0, 1.0);
+    // Stronger contrast curve (gamma)
+    d = pow(d, 1.5);        // change exponent for more contrast
+    // Hard floor to produce thicker clumps
+    d = smoothstep(0.25, 0.75, d);
+    return d;
+}
+
 // Takes in input of position in cloud
 // Don't know where the numbers came from but apparently this function is used in a lot of demos
 float noise(vec3 x) {
@@ -41,7 +50,7 @@ float fbm(vec3 p, float time) {
 	// No idea abt these numbers
 	// Getting new vector of position with also time?
 	// Vector determines speed of inner cloud movement directions
-	vec3 q = p + TIME*0.5 *vec3(0.7,-0.2,-0.7);
+	vec3 q = p + TIME*0.2 *vec3(0.7,-0.2,-0.7);
 
 	float f = 0.0;
 	float scale = 0.45;
@@ -64,10 +73,21 @@ float scene(vec3 p, float time) {
 	//float f = fbm(p, TIME);
     //return f;
 
-	float n = fbm(p * 0.5, TIME);
+	// Good for floor clouds, gets weird if box y pos is not close to 0m
+	//float n = fbm(p * 0.5, time);
+    //n = (n + 1.0) * 0.5; // normalize FBM from [-1,1] → [0,1]
+    //float height = clamp(1.0 - abs(p.y) * 0.2, 0.0, 1.0);
+    //float d = n * height;
+	 //return remap_density(d) * 5. *n;
+	vec3 local_p = (p - cloudContainerPos) / cloudCountainerScale;
 
-    float height = clamp(1.0 - abs(p.y) * 0.2, 0.0, 1.0);
+
+	float n = fbm(local_p , TIME);
+
+    float height = clamp(1.0 - abs(local_p.y) * 0.6, 0.0, 1.0);
     return n * height;
+
+
 	 //adding a noise term to the inside of distance
 }
 
@@ -84,6 +104,7 @@ vec4 raymarch(vec3 ro, vec3 rd, float time, float offset) {
       	if (density > 0.0) {
 			//Directional derivative lighting
 			float diffuse = clamp((scene(p, time) - scene(p + 0.3*sunDirection, time)) / 0.3, 0.0, 1.0);
+
 			vec3 lin = vec3(0.60,0.60,0.75)*1.1 + 2.8*vec3(1.0,0.6,0.3)*diffuse;
 			vec4 color = vec4(mix(vec3(1.0), vec3(0.0), density), density);
 			color.rgb *= lin;
@@ -201,7 +222,7 @@ void fragment() {
 		color -= 0.8*vec3(0.90,0.75,0.90)*rd_world.y;
 		// Add sun color to sky
 		color += 0.5 * vec3(1.0,0.5,0.3) * pow(sun, 10.0);
-		float blueNoise = texture(blue_noise, SCREEN_UV.xy / 1024.0).r;
+		float blueNoise = texture(blue_noise, SCREEN_UV.xy / 512.0).r;
   		float blue_offset = fract(blueNoise + float(int(floor(TIME))%32) / sqrt(0.5));
 
 		// Perform raymarch
