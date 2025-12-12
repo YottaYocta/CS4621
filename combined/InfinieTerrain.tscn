@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=6 format=3 uid="uid://dmt4cuvputyx0"]
 
-[ext_resource type="Script" path="res://combined/infinite_terrain.gd" id="1_terrain"]
+[ext_resource type="Script" uid="uid://cewcjwfujdi6i" path="res://combined/infinite_terrain.gd" id="1_terrain"]
 [ext_resource type="PackedScene" uid="uid://donpc4mnvm7or" path="res://player_controller.tscn" id="2_player"]
-[ext_resource type="PackedScene" uid="uid://cibb1mcq53akv" path="res://sky_scene.tscn" id="3_sky"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
@@ -26,9 +25,6 @@ ambient_light_source = 3
 
 [node name="InfinieTerrain" type="Node3D"]
 script = ExtResource("1_terrain")
-chunk_size = 16
-chunk_load_radius = 1
-chunk_gen_speed = 0.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")
@@ -39,9 +35,3 @@ shadow_enabled = true
 
 [node name="PlayerController" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, 0)
-
-[node name="SkyScene" parent="." instance=ExtResource("3_sky")]
-transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 50, 15, 50)
-
-[node name="SkyScene2" parent="." instance=ExtResource("3_sky")]
-transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, -50, 15, -50)

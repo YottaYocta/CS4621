@@ -84,7 +84,7 @@ transform = Transform3D(0.99921817, -0.028726397, -0.027166305, 0.029539365, 0.9
 near = 0.5
 
 [node name="ScreenShader" type="MeshInstance3D" parent="Camera"]
-transform = Transform3D(1, 0, 3.7252903e-09, -9.313226e-10, 1.0000001, -2.9802322e-08, 0, 0, 1.0000001, 0, 0, 0)
+transform = Transform3D(1, 1.4551915e-09, 3.7252903e-09, 1.5133992e-09, 1.0000002, -2.7939677e-08, 0, 0, 1.0000001, -0.6101004, 0.01753974, 0.016587257)
 material_override = ExtResource("4_6fl2n")
 extra_cull_margin = 3985.17
 mesh = SubResource("QuadMesh_4nrna")
