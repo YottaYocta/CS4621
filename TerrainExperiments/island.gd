@@ -106,10 +106,10 @@ func _count_alive_neighbors(grid: Array, x: int, y: int, z: int) -> int:
 						count += 1
 	return count
 
-func get_voxel(x: int, y: int, z: int) -> int:
+func get_voxel(x: int, y: int, z: int) -> float:
 	if x >= 0 and x < resolution and y >= 0 and y < resolution and z >= 0 and z < resolution:
-		return mat[z][y][x]
-	return -1
+		return float(mat[z][y][x])
+	return -1.0
 
 func _spawn_chunks():
 	var num_chunks = int(ceil(float(resolution) / float(chunk_size)))

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://chunk_threaded"]
-
-[ext_resource type="Script" path="res://combined/chunk_threaded.gd" id="1"]
-
-[node name="ChunkThreaded" type="Node3D"]
-script = ExtResource("1")
