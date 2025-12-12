@@ -6,6 +6,7 @@ render_mode unshaded, cull_front;
 #define RADIUS 1.5
 
 const vec3 SUN_POSITION = vec3(2.0,3.0,0.0);
+uniform float gamma : hint_range(0.6, 2.5) = 2.2;
 
 uniform sampler2D noise_texture : repeat_enable, filter_linear;
 uniform sampler2D blue_noise : repeat_enable;
@@ -229,8 +230,13 @@ void fragment() {
 	    vec4 d = raymarch(ro_world, rd_world, TIME, blue_offset);
 		color = color * (1.0 - d.a) + d.rgb;
 
+		//Gamma encoding?
+		color = color -0.4;
+
+		color = pow(color, vec3(gamma));
+
 	    ALBEDO = color;
+
 		ALPHA = d.a;
 	}
 }
-

@@ -1,23 +1,22 @@
-[gd_scene load_steps=12 format=3 uid="uid://dmt4cuvputyx0"]
+[gd_scene load_steps=14 format=3 uid="uid://dmt4cuvputyx0"]
 
 [ext_resource type="Script" uid="uid://pa1p41gumstm" path="res://combined/IInfiniteTerrain.gd" id="1_terrain"]
+[ext_resource type="Shader" uid="uid://b12npv48egpko" path="res://Shaders/SkyShader.gdshader" id="2_2f1c7"]
 [ext_resource type="PackedScene" uid="uid://b3rh8ttwhogpr" path="res://character1.tscn" id="2_3qhwe"]
+[ext_resource type="Material" uid="uid://ct2qn8id78psr" path="res://shader(water)/water.tres" id="2_fhab0"]
+[ext_resource type="Texture2D" uid="uid://4vs24x1n54kr" path="res://Shaders/sky_seamless_texture_5939.jpg" id="3_3iok2"]
 [ext_resource type="PackedScene" uid="uid://ciu7pl8ncvxi2" path="res://clo.tscn" id="3_fybgn"]
 [ext_resource type="Material" uid="uid://cwgfd7jpcudnh" path="res://Shaders/ScreenMaterial.material" id="3_h5adp"]
 [ext_resource type="Script" uid="uid://cf50hn8vfat07" path="res://CloudFollow.gd" id="4_4nnfw"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.316968, 0.424665, 0.758999, 1)
-sky_horizon_color = Color(0.634458, 0.769141, 0.863272, 1)
-sky_curve = 0.0326457
-ground_bottom_color = Color(0.498039, 0.611765, 0.788235, 1)
-ground_horizon_color = Color(0.635294, 0.768627, 0.862745, 1)
-sun_angle_max = 58.89
-sun_curve = 0.0349887
-energy_multiplier = 1.2
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p1pcx"]
+shader = ExtResource("2_2f1c7")
+shader_parameter/skyColor = Color(0, 0, 0.99607843, 1)
+shader_parameter/horizonColor = Color(0, 0, 1, 1)
+shader_parameter/noise_texture = ExtResource("3_3iok2")
 
 [sub_resource type="Sky" id="Sky_main"]
-sky_material = SubResource("ProceduralSkyMaterial_sky")
+sky_material = SubResource("ShaderMaterial_p1pcx")
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 2
@@ -25,12 +24,6 @@ background_energy_multiplier = 0.92
 sky = SubResource("Sky_main")
 sky_custom_fov = 104.2
 ambient_light_source = 3
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3qhwe"]
-cull_mode = 2
-albedo_color = Color(0.28116247, 0.3452877, 0.7360431, 1)
-metallic = 0.2
-metallic_specular = 0.4
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h5adp"]
 size = Vector2(3000, 3000)
@@ -51,9 +44,9 @@ transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 
 shadow_enabled = true
 
 [node name="Water" type="MeshInstance3D" parent="."]
-transform = Transform3D(1.003025, 0, 0, 0, 1.003025, 0, 0, 0, 1.003025, 0, 15.430273, 0)
-material_override = SubResource("StandardMaterial3D_3qhwe")
+transform = Transform3D(1.003025, 0, 0, 0, 1.003025, 0, 0, 0, 1.003025, -2.0731122, 15.477673, -1.82729)
 mesh = SubResource("PlaneMesh_h5adp")
+surface_material_override/0 = ExtResource("2_fhab0")
 
 [node name="charactermodel01" parent="." instance=ExtResource("2_3qhwe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20.44467, 0)
